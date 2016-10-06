@@ -63,6 +63,7 @@ A source file is something like `lme4qtl_0.1.5.zip` or `lme4qtl_0.1.5_R_x86_64-p
 p <- c("Matrix", "lme4", "kinship2", "plyr", "ggplot2")
 install.packages(p)
 
-# install lme4qtl
+# install lme4qtl from a local file
+# - the first argument is path to the installation file
 install.packages("lme4qtl_0.1.5.zip", repos = NULL)
 ```
