@@ -65,5 +65,6 @@ install.packages(p)
 
 # install lme4qtl from a local file
 # - the first argument is path to the installation file
+# - the second argument (`repos = NULL`) says to install locally rather than from a repository
 install.packages("lme4qtl_0.1.5.zip", repos = NULL)
 ```
