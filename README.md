@@ -8,7 +8,7 @@ The release of lme4qtl is scheduled according to manuscript submission.
 
 |  Package | Continuous response |
 |----------|---------------------|
-| stats   | `lmer(myTrait ~ myCovariate, myData)` |
+| stats   | `lm(myTrait ~ myCovariate, myData)` |
 | lme4    | `lmer(myTrait ~ myCovariate + (1|myID), myData)` |
 | lme4qtl | `relmatLmer(myTrait ~ myCovariate + (1|myID), myData, relmat = list(myID = myMatrix))` |
 
