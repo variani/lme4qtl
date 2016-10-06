@@ -8,13 +8,15 @@ The release of lme4qtl is scheduled according to manuscript submission.
 
 |  Package | Continuous response |
 |----------|---------------------|
+| stats   | `lmer(myTrait ~ myCovariate, myData)` |
 | lme4    | `lmer(myTrait ~ myCovariate + (1|myID), myData)` |
-| lme4qlt | `relmatLmer(myTrait ~ myCovariate + (1|myID), myData, relmat = list(myID = myMatrix))` |
+| lme4qtl | `relmatLmer(myTrait ~ myCovariate + (1|myID), myData, relmat = list(myID = myMatrix))` |
 
 |  Package | Binary response |
 |----------|---------------------|
+| stats    | `glm(myStatus ~ 1, myData, family = binomial)` |
 | lme4    | `glmer(myStatus ~ (1|myID), myData, family = binomial)` |
-| lme4qlt | `relmatGlmer(myStatus ~ (1|myID), myData, relmat = list(myID = myMatrix), family = binomial)` |
+| lme4qtl | `relmatGlmer(myStatus ~ (1|myID), myData, relmat = list(myID = myMatrix), family = binomial)` |
 
 
 ## Quick start
@@ -54,7 +56,7 @@ gmod <- relmatGlmer(trait1bin ~ AGE + SEX + (1|ID), dat40, relmat = list(ID = ki
 
 ### Install from a local file
 
-A source file is something lile `lme4qtl_0.1.5.zip` or `lme4qtl_0.1.5_R_x86_64-pc-linux-gnu.tar.gz`.
+A source file is something like `lme4qtl_0.1.5.zip` or `lme4qtl_0.1.5_R_x86_64-pc-linux-gnu.tar.gz`.
 
 ```
 # install dependencies, if necessary
