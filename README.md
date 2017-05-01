@@ -1,6 +1,6 @@
 ## About lme4qtl
 
-lme4qtl extends the [lme4](https://github.com/lme4/lme4) R package for quantitative trait locus (qtl) mapping. It is all about the correlation structure of random effects. `lme4qtl` allows to define this structure via matrices,
+lme4qtl extends the [lme4](https://github.com/lme4/lme4) R package for quantitative trait locus (qtl) mapping. It is all about the covariance structure of random effects. `lme4qtl` allows to define this structure via matrices,
 e.g. the kinship or IBD matrices.
 
 Please see slides [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ) introducing the lme4qtl R package.
