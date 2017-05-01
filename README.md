@@ -5,7 +5,7 @@ e.g. the kinship or IBD matrices.
 
 See slides [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ) introducing the lme4qtl R package.
 
-The release of lme4qtl is scheduled according to manuscript submission. 
+The release of `lme4qtl` is scheduled according to manuscript submission. 
 
 |  Package | Continuous response |
 |----------|---------------------|
