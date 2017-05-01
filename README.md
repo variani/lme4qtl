@@ -28,12 +28,12 @@ Source: [inst/examples/package-lme4qtl.R](inst/examples/package-lme4qtl.R)
 library(lme4) # needed for `VarCorr` function
 library(lme4qtl)
 
-### load the synthetic data: 
+# load synthetic data set `dat40` distributed within `lme4qtl`
 # - table of phenotypes `dat40`
 # - the double kinship matrix `kin2`
 data(dat40)
 
-### model the continiuous trait `trait1`
+# (1) model continiuous trait `trait1`
 mod <- relmatLmer(trait1 ~ AGE + SEX + (1|FAMID) + (1|ID), dat40, relmat = list(ID = kin2))
 
 # get the estimation of h2
@@ -48,8 +48,8 @@ prop <- with(vf, vcov / sum(vcov))
 (h2 <- prop[1]) 
 #[1] `0.895419`
 
-### model the binary trait `trait1bin`
-# - Model is nearly unidentifiable, when `(1|FAMID)` effect is added
+# (2) model binary trait `trait1bin`
+# - model is nearly unidentifiable, when `(1|FAMID)` effect is added
 gmod <- relmatGlmer(trait1bin ~ AGE + SEX + (1|ID), dat40, relmat = list(ID = kin2), family = binomial)
 ```
 
