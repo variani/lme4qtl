@@ -9,14 +9,14 @@ The release of lme4qtl is scheduled according to manuscript submission.
 |  Package | Continuous response |
 |----------|---------------------|
 | stats   | `lm(myTrait ~ myCovariate, myData)` |
-| lme4    | `lmer(myTrait ~ myCovariate + (1|myID), myData)` |
-| lme4qtl | `relmatLmer(myTrait ~ myCovariate + (1|myID), myData, relmat = list(myID = myMatrix))` |
+| lme4    | `lmer(myTrait ~ myCovariate + (1\|myID), myData)` |
+| lme4qtl | `relmatLmer(myTrait ~ myCovariate + (1\|myID), myData, relmat = list(myID = myMatrix))` |
 
 |  Package | Binary response |
 |----------|---------------------|
 | stats    | `glm(myStatus ~ 1, myData, family = binomial)` |
-| lme4    | `glmer(myStatus ~ (1|myID), myData, family = binomial)` |
-| lme4qtl | `relmatGlmer(myStatus ~ (1|myID), myData, relmat = list(myID = myMatrix), family = binomial)` |
+| lme4    | `glmer(myStatus ~ (1\|myID), myData, family = binomial)` |
+| lme4qtl | `relmatGlmer(myStatus ~ (1\|myID), myData, relmat = list(myID = myMatrix), family = binomial)` |
 
 
 ## Quick start
