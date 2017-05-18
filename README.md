@@ -22,8 +22,6 @@ The release of `lme4qtl` is scheduled according to manuscript submission.
 
 ## Quick start
 
-Source: [inst/examples/package-lme4qtl.R](inst/examples/package-lme4qtl.R)
-
 ```
 library(lme4) # needed for `VarCorr` function
 library(lme4qtl)
