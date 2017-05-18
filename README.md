@@ -61,6 +61,8 @@ gmod <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family 
 
 A source file is something like `lme4qtl_0.1.7.zip` (Windows) or `lme4qtl_0.1.7.tgz` (Linux, Mac).
 
+Type in R:
+
 ```
 # install dependencies, if necessary
 p <- c("Matrix", "lme4", "kinship2", "plyr", "ggplot2")
@@ -70,4 +72,10 @@ install.packages(p)
 # - the first argument is path to the installation file
 # - the second argument (`repos = NULL`) says to install locally rather than from a repository
 install.packages("lme4qtl_0.1.7.zip", repos = NULL)
+```
+
+Type in terminal:
+
+```
+R CMD INSTALL lme4qtl_0.1.7.tgz
 ```
