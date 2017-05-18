@@ -54,7 +54,7 @@ gmod <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family 
 
 `lme4qtl` is ditributed via binary R packages:
 
-- [lme4qtl_0.1.7.tg](https://github.com/variani/lme4qtl/releases/download/v0.1.7/lme4qtl_0.1.7.tgz) for Linux, Mac;
+- [lme4qtl_0.1.7.tgz](https://github.com/variani/lme4qtl/releases/download/v0.1.7/lme4qtl_0.1.7.tgz) for Linux, Mac;
 - [lme4qtl_0.1.7.zip](https://github.com/variani/lme4qtl/releases/download/v0.1.7/lme4qtl_0.1.7.zip) for Windows.
 
 ### Install from a local file
