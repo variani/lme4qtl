@@ -49,15 +49,14 @@ prop <- with(vf, vcov / sum(vcov))
 #[1] `0.895419`
 
 # (2) model binary trait `trait1bin`
-# - model is nearly unidentifiable, when `(1|FAMID)` effect is added
-gmod <- relmatGlmer(trait1bin ~ AGE + SEX + (1|ID), dat40, relmat = list(ID = kin2), family = binomial)
+gmod <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family = binomial)
 ```
 
 ## Install
 
 ### Install from a local file
 
-A source file is something like `lme4qtl_0.1.5.zip` or `lme4qtl_0.1.5_R_x86_64-pc-linux-gnu.tar.gz`.
+A source file is something like `lme4qtl_0.1.7.zip` (Windows) or `lme4qtl_0.1.7.tgz` (Linux, Mac).
 
 ```
 # install dependencies, if necessary
@@ -67,5 +66,5 @@ install.packages(p)
 # install lme4qtl from a local file
 # - the first argument is path to the installation file
 # - the second argument (`repos = NULL`) says to install locally rather than from a repository
-install.packages("lme4qtl_0.1.5.zip", repos = NULL)
+install.packages("lme4qtl_0.1.7.zip", repos = NULL)
 ```
