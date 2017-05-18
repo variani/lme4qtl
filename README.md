@@ -65,7 +65,7 @@ Type in R:
 
 ```
 # install dependencies, if necessary
-p <- c("Matrix", "lme4", "kinship2", "plyr", "ggplot2")
+p <- c("Matrix", "lme4", "kinship2", "plyr", "tibble", "ggplot2")
 install.packages(p)
 
 # install lme4qtl from a local file
