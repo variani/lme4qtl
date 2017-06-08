@@ -1,11 +1,12 @@
 ## About lme4qtl
 
-lme4qtl extends the [lme4](https://github.com/lme4/lme4) R package for quantitative trait locus (qtl) mapping. It is all about the covariance structure of random effects. `lme4qtl` can define this structure via matrices,
-e.g. the kinship or IBD matrices.
+lme4qtl extends the [lme4](https://github.com/lme4/lme4) R package for quantitative trait locus (qtl) mapping. It is all about the covariance structure of random effects. `lme4qtl` can define with user-define matrices,
+e.g. kinship or IBDs.
 
 See slides [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ) introducing the `lme4qtl` R package.
 
-The release of `lme4qtl` is scheduled according to manuscript submission. 
+The release of `lme4qtl` is scheduled according to manuscript submission.
+Preprint in biorxiv: [lme4qtl: linear mixed models with flexible covariance structure for genetic studies of related individuals](http://biorxiv.org/content/early/2017/05/18/139816.1)
 
 |  Package | Continuous response |
 |----------|---------------------|
@@ -52,7 +53,7 @@ gmod <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family 
 
 ## Install
 
-`lme4qtl` is ditributed via binary R packages:
+`lme4qtl` is ditributed via binary files:
 
 - [lme4qtl_0.1.7.tgz](https://github.com/variani/lme4qtl/releases/download/v0.1.7/lme4qtl_0.1.7.tgz) for Linux, Mac;
 - [lme4qtl_0.1.7.zip](https://github.com/variani/lme4qtl/releases/download/v0.1.7/lme4qtl_0.1.7.zip) for Windows.
