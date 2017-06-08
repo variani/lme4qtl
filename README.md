@@ -6,6 +6,7 @@ e.g. kinship or IBDs.
 See slides [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ) introducing the `lme4qtl` R package.
 
 The release of `lme4qtl` is scheduled according to manuscript submission.
+
 Preprint in biorxiv: [lme4qtl: linear mixed models with flexible covariance structure for genetic studies of related individuals](http://biorxiv.org/content/early/2017/05/18/139816.1)
 
 |  Package | Continuous response |
