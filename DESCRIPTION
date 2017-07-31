@@ -10,7 +10,7 @@ License: GPL (>= 3)
 Imports:
     methods,
     Matrix,
-    lme4 (>= 1.1.14),
+    lme4,
     kinship2,
     plyr,
     tibble,
