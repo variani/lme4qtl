@@ -1,0 +1,13 @@
+\.git
+
+docs/
+notes/
+learn/
+
+vignettes/
+inst/scripts/
+
+data/solarOutput
+data/dat.RData
+
+^\.travis\.yml$

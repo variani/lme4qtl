@@ -1,0 +1,59 @@
+lme4qtl 0.1.9
+=============
+
+- The first public version hosted at https://github.com/variani/lme4qtl
+
+lme4qtl 0.1.8
+=============
+
+- The SVD method is replaced by EVD in `relfac` fucntion.
+  Now the decompoistion K = LL' works for rank-deficient matrices such as (1|FAM).
+  The test file `test-relfac.R` is updated with necessary checks.
+
+lme4qtl 0.1.7
+=============
+
+* Towards the official release before submitting the article to Bionf.
+
+lme4qtl 0.1.6
+=============
+
+* The use of variables given in `relmat` are revised.
+  Now the cases when when these variables are characters or integers
+  seems to work OK.
+  The point is that in the order of data rows (used when passed from formula to matrices).
+  The example that may fail without this update is http://kbroman.org/lmmlite/assets/lmmlite.html
+  (the heritability is estimated as `0`).
+
+lme4qtl 0.1.5
+=============
+
+* The release prepared for the internal use of collaborators.
+  Two main functions were tested: `relmatLmer` and `relmatGlmer`.
+
+lme4qtl 0.1.4
+=============
+
+* The package was renamed from `solaris` to `lme4qtl`.
+* The old code was depreciated and the old R files are moved to `docs/R/old`.
+* The package was hadleversed as much as needed to pass `devtools::check()`.
+
+solaris 0.1.3
+==================
+
+* Updated `solaris` function to hadle `relmat` parameter better.
+  Now `step` funtion from `lmerTest` package works.
+
+solaris 0.1.2
+==================
+
+* Added `relranef` function. This function extracts the random effect vectors `u`
+  when relative matrices were introduced for the random effects.
+  See example code in `ins/examples/function-realranef.R`
+  
+solaris 0.1.1
+==================
+
+* Added `stepRaef` function. This function takes all random effect in a model
+  and then follow `step`-like procedure to filter out those significant effect.
+  Likelihood ratio test (LRT) is used.

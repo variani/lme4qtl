@@ -1,0 +1,33 @@
+Package: lme4qtl
+Type: Package
+Title: Linear mixed models with custom covariance matrices and restrictions on model parameters.
+Version: 0.1.9
+Date: 2017-06-26
+Author: Andrey Ziyatdinov
+Maintainer: Andrey Ziyatdinov <andrey.ziyatdinov@upc.edu>
+Description: Linear mixed models (lme4) with flexible covariance structure for qtl and association analysis.
+License: GPL (>= 3)
+Imports:
+    methods,
+    Matrix,
+    lme4 (>= 1.1.14),
+    kinship2,
+    plyr,
+    tibble,
+    ggplot2
+Suggests:
+    splines,
+    testthat,
+    doParallel,
+    solarius,
+    HSAUR2,
+    pedigreemm
+Collate:
+    'package.R'
+    'utils.lib.R'
+    'varcov.R'
+    'plot.lib.R'
+    'relmatGlmer.R'
+    'relmatLmer.R'
+    'relmatAssoc.R'    
+RoxygenNote: 6.0.1
