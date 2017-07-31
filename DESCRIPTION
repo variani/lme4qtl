@@ -2,7 +2,7 @@ Package: lme4qtl
 Type: Package
 Title: Linear mixed models with custom covariance matrices and restrictions on model parameters.
 Version: 0.1.9
-Date: 2017-06-26
+Date: 2017-07-31
 Author: Andrey Ziyatdinov
 Maintainer: Andrey Ziyatdinov <andrey.ziyatdinov@upc.edu>
 Description: Linear mixed models (lme4) with flexible covariance structure for qtl and association analysis.
