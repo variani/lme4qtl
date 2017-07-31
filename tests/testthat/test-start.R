@@ -33,18 +33,20 @@ test_that("start in lmer (modular)", {
 })
 
 test_that("start in lmer", {
-  data(dat30, package = "solarius")
+  if(packageVersion("lme4") >= "1.1.14") {
+    data(dat30, package = "solarius")
 
-  # model 1
-  mod1 <- lmer(trait1 ~ 1 + (1|famid), dat30)
+    # model 1
+    mod1 <- lmer(trait1 ~ 1 + (1|famid), dat30)
 
-  # model 2
-  start <- list(theta = as.numeric(getME(mod1, "theta")))
-  control <- lmerControl(optimizer = NULL)
+    # model 2
+    start <- list(theta = as.numeric(getME(mod1, "theta")))
+    control <- lmerControl(optimizer = NULL)
 
-  mod2 <- lmer(trait1 ~ 1 + (1|famid), dat30, control = control, start = start)
+    mod2 <- lmer(trait1 ~ 1 + (1|famid), dat30, control = control, start = start)
 
-  expect_equal(getME(mod2, "theta"), getME(mod2, "theta"))
+    expect_equal(getME(mod2, "theta"), getME(mod2, "theta"))
+  }
 })
 
 test_that("start in lmer (modular) on dat30 with (1|famid)", {
