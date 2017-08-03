@@ -20,6 +20,7 @@ See slides [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ) introducing the `lme4qtl` R p
 | lme4    | `glmer(myStatus ~ (1\|myID), myData, family = binomial)` |
 | lme4qtl | `relmatGlmer(myStatus ~ (1\|myID), myData, relmat = list(myID = myMatrix), family = binomial)` |
 
+Note that the rownames/colnames of `myMatrix` have to be the values if `myID` variable, so the matching between relationship matrix and grouping variable is possible. The order doesn't matter.
 
 ## Quick start
 
