@@ -18,3 +18,14 @@ isSymmetric(maatriks2, tol = 0.02)
 
 ### model
 #mudel2 <- relmatLmer(CTG_LDL_statin ~ Age+ Sugu + (1|Vcode1), FH2, relmat = list(Vcode1 = maatriks2))
+
+### solution
+mat <- forceSymmetric(maatriks2)
+# caution: See `?forceSymmetric`, e.g. "result can be pretty surprising".
+
+mod <- relmatLmer(CTG_LDL_statin ~ Age+ Sugu + (1|Vcode1), FH2, relmat = list(Vcode1 = mat), verbose = 2)
+
+VarCorr(mod)
+# Groups   Name        Std.Dev.
+# Vcode1   (Intercept) 0.00000
+# Residual             0.96904
