@@ -1,0 +1,231 @@
+---
+title: "Supplementary Note 1: R code to compare lme4qtl and pedigreemm R packages "
+author: "Andrey Ziyatdinov"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 3
+    number_sections: false
+  html_document:
+    fig_caption: yes
+    toc: true
+    number_sections: false
+bibliography: ref.bib    
+---
+
+```{r options, echo = F}
+opts_chunk$set(comment = NA, results = 'markup', tidy = F, message = F, warning = F, echo = T,
+  fig.width = 3, fig.height = 3, cache = T)
+```
+
+# About
+
+The R package `pedigreemm` was first in extending the `lme4` R package
+for particular applications in the animal breeding field [@Vazquez2010].
+Custom covariance (genetic additive) matrix 
+are defined using the pedigree annotation information
+(`pedigree` argument of `pedigreemm` function).
+Although the `lme4qtl` package borrows the same idea of `pedigreemm`,
+`lme4qtl` provides a larger list of genetic models
+that are *not* possible with `pedigreemm`.
+In particular, these models include:
+
+- models with a single or several custom covariances 
+  (not necessary linked to pedigree information);
+- models with random slopes and other similar models 
+  like gene-by-environment interaction models;
+    - the restriction on model parameters, 
+      e.g. the correlation coefficient is zero,
+      is supported.
+
+Here, we show models that are available with `lme4qtl` and not with `pedigreemm`.
+
+# Include
+
+First, we load R packages necessary for data analysis.
+
+```{r inc0}
+library(Matrix)
+library(magrittr)
+```
+
+```{r inc}
+library(pedigreemm)
+
+library(lme4qtl)
+```
+
+# Data
+
+We use an example data set `milk` from the `pedigreemm` package.
+See `?milk` for description.
+
+Here, we work on a subset of this dataset (`milk_subset`)
+to reduce the computation time.
+
+```{r milk}
+data(milk)
+
+milk <- within(milk, {
+  id <- as.character(id)
+  sdMilk <- milk / sd(milk)
+})
+
+ids <- with(milk, id[sire %in% 1:3]) # for more ids: c(1:3, 319-321)
+milk_subset <- subset(milk, id %in% ids)
+
+milk_subset <- within(milk_subset, {
+   herd <- droplevels(herd)
+   herd_id <- paste0("herd", seq(1, length(herd)))
+})
+```
+
+## Covariance matrices
+
+A mixed model we are going to fit will have two random effects,
+groupings based on two ID variables:
+
+- `id`, a numeric identifier of cow (the genetic additive effect);
+- `herd`, a factor indicating the herd (the shared environmental effect).
+
+Further we derive the covariance matrices (among samples)
+due to these two random effects.
+
+```{r A_herd}
+A_herd <- with(milk_subset, model.matrix(~ herd - 1)) %>% 
+  tcrossprod %>% Matrix
+
+rownames(A_herd) <- milk_subset$herd_id
+colnames(A_herd) <- milk_subset$herd_id
+```
+
+```{r A_gen}
+A_gen <- getA(pedCowsR)
+
+stopifnot(all(ids %in% rownames(A_gen)))
+ind <- rownames(A_gen) %in% ids
+
+A_gen <- A_gen[ind, ind]
+```
+
+
+```{r A_mat, fig.show = "hold", out.width = "45%"}
+image(A_herd, main = "A_herd")
+image(A_gen, main = "A_gen")
+```
+
+
+# Models
+
+## A single kinship matrix
+
+Both packages can fit a basic model with a single genetic effect,
+for which the `pedigreemm` R package was sought.
+
+```{r m1_pmm}
+m1_pmm <- pedigreemm(sdMilk ~ lact + log(dim) + (1|id) + (1|herd),
+  data = milk_subset, pedigree = list(id = pedCowsR))
+
+VarCorr(m1_pmm)
+```   
+
+```{r m1_relmat}
+m1_relmat <- relmatLmer(sdMilk ~ lact + log(dim) + (1|id) + (1|herd),
+  data = milk_subset, relmat = list(id = A_gen))
+
+VarCorr(m1_relmat)
+``` 
+
+We see that the estimation of variance components from both packages are identical.
+
+## A single custom covariance matrix
+
+`lme4qtl` packages allows for custom covariance matrices, 
+while `pedigreemm` does not.
+
+```{r m2}
+m2_lmer <- lmer(sdMilk ~ (1|herd), milk_subset)
+VarCorr(m2_lmer)
+
+m2_relmat <- relmatLmer(sdMilk ~ (1|herd_id), milk_subset, 
+  relmat = list(herd_id = A_herd))
+VarCorr(m2_relmat)
+
+(try(m2_pmm <- pedigreemm(sdMilk ~ (1|herd_id), milk_subset, 
+  pedigree = list(herd_id = A_herd))))
+```
+
+```{r Ztlist_34, fig.show = "hold", out.width = "45%"}
+getME(m2_lmer, "Ztlist")[[1]] %>% crossprod %>% image
+getME(m2_relmat, "Ztlist")[[1]] %>% crossprod %>% image
+```
+
+### Rank deficiency
+
+`A_herd` is a low-rank matrix, but `lme4qtl` is able to deal with this rank deficiency situation
+by replacing the Cholesky decomposition by the EVD operation.
+The `pedigreemm` package only uses the Cholesky decomposition.
+
+```{r rank}
+A_herd %>% dim
+
+A_herd %>% as.matrix %>% qr %$% rank
+```
+
+## A single kinship matrix + random slope
+
+Complex models are possible with `lme4qtl`, for example, those with a random slope effect.
+
+```{r m3_rs}
+m3_relmat <- relmatLmer(sdMilk ~ lact + log(dim) + (1 + lact|id) + (1|herd),
+  data = subset(milk_subset, relmat = list(id = A_gen)))
+VarCorr(m3_relmat)
+
+(try(m3_pmm <- pedigreemm(sdMilk ~ lact + log(dim) + (1 + lact|id) + (1|herd),
+  data = milk_subset, pedigree = list(id = pedCowsR))))
+```   
+
+### Restriction on model parameters
+
+```{r m3_r}
+m3_relmat_rho0 <- relmatLmer(sdMilk ~ lact + log(dim) + (1 + lact|id) + (1|herd),
+  data = subset(milk_subset, relmat = list(id = A_gen)),
+  vcControl = list(rho0 = list(id = 2)))
+VarCorr(m3_relmat_rho0)
+```
+
+
+## Two covariance matrices
+
+```{r m56}
+m5 <- relmatLmer(sdMilk ~ (1|herd) + (1|id), milk_subset, 
+  relmat = list(id = A_gen))
+VarCorr(m5)
+
+m6 <- relmatLmer(sdMilk ~ (1|herd_id) + (1|id), milk_subset, 
+  relmat = list(herd_id = A_herd, id = A_gen))
+VarCorr(m6)
+```
+
+
+```{r Ztlist_56, fig.show = "hold", out.width = "45%"}
+getME(m5, "Ztlist")[[1]] %>% crossprod %>% image
+getME(m6, "Ztlist")[[2]] %>% crossprod %>% image
+```
+
+```{r Ztlist_56_2, fig.show = "hold", out.width = "45%"}
+getME(m5, "Ztlist")[[2]] %>% crossprod %>% image
+getME(m6, "Ztlist")[[1]] %>% crossprod %>% image
+```
+
+
+
+```{r m3}
+(try(m3 <- pedigreemm(sdMilk ~ lact + log(dim) + (1|id) + (1|herd_id),
+  data = milk_subset, pedigree = list(id = pedCowsR, herd_id = A_herd))))
+``` 
+
+# References
+
+
