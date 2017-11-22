@@ -60,28 +60,6 @@ library(devtools)
 install_github("variani/lme4qtl")
 ```
 
-### Installation from a local file (depreciated)
+## Contact
 
-Binary files:
-
-- [lme4qtl_0.1.7.tgz](https://github.com/variani/lme4qtl/releases/download/v0.1.7/lme4qtl_0.1.7.tgz) for Linux, Mac;
-- [lme4qtl_0.1.7.zip](https://github.com/variani/lme4qtl/releases/download/v0.1.7/lme4qtl_0.1.7.zip) for Windows.
-
-Type in R:
-
-```
-# install dependencies, if necessary
-p <- c("Matrix", "lme4", "kinship2", "plyr", "tibble", "ggplot2")
-install.packages(p)
-
-# install lme4qtl from a local file
-# - the first argument is path to the installation file
-# - the second argument (`repos = NULL`) says to install locally rather than from a repository
-install.packages("lme4qtl_0.1.7.zip", repos = NULL)
-```
-
-Type in terminal:
-
-```
-R CMD INSTALL lme4qtl_0.1.7.tgz
-```
+You are welcome to submit suggestions and bug-reports at https://github.com/variani/lme4qtl/issues.
