@@ -1,3 +1,9 @@
+lme4qtl 0.1.10
+=============
+
+- Fixed issues:
+    - #5 (https://github.com/variani/lme4qtl/issues/5): repeated measurements and `relmatGlmer`
+
 lme4qtl 0.1.9
 =============
 

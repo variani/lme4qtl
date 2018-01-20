@@ -33,7 +33,7 @@ A <- getA(pedCowsR)
 m1 <- relmatLmer(sdMilk ~ lact + log(dim) + (1|id) + (1|herd),
   data = milk_subset, relmat = list(id = A))
 
-m2 <- try(relmatGlmer(sdMilk ~ lact + log(dim) + (1|id) + (1|herd),
+m2 <- try(relmatGlmer(sdMilk_counts ~ lact + log(dim) + (1|id) + (1|herd),
   data = milk_subset, relmat = list(id = A), 
   family = "poisson"))
 

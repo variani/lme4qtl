@@ -9,7 +9,9 @@ test_that("relfac methods", {
   K.svd <- crossprod(relfac.svd(K, 1e-10))
   K.evd <- crossprod(relfac.evd(K, 1e-10))
   
-  expect_equal(as.vector(K), as.vector(K.chol), as.vector(K.svd), as.vector(K.evd))
+  expect_equal(as.vector(K), as.vector(K.chol), 
+    as.vector(K.svd), as.vector(K.evd), 
+    check.attributes = FALSE)
 })
 
 test_that("relfac methods for rank deficient matrices", {

@@ -27,6 +27,7 @@ relmat_glmer <- function(formula, data = NULL, family = gaussian,
   ...,
   # relLmer-specific argument in comparison with lmer function
   method.relfac = "auto",
+  debug = 0,
   modOnly = FALSE, controlOnly = FALSE,
   vcControl = list(),
   relmat = list(), check.nobs = "ignore", calc.derivs = TRUE 
@@ -103,65 +104,55 @@ relmat_glmer <- function(formula, data = NULL, family = gaussian,
   #----
   # Start of relmatLmer-specific part
   #----
-  if("relmat" %in% names(mc)) mc[["relmat"]] <- NULL
-  if("check.nobs" %in% names(mc)) mc[["check.nobs"]] <- NULL
-  
-  glmod <- eval(mc, parent.frame(1L)) # Uncommented line 1
+  # remove call arguments which are specific to `relmat_glmer`
+  # before calling lme4::lFormula
+  args <- c("method.relfac", "modOnly", "controlOnly", "debug", "vcControl", 
+    "relmat", "check.nobs", "calc.derivs")
+  for(arg in args) {
+    if(arg %in% names(mc)) {
+      mc[[arg]] <- NULL
+    }
+  }
+  glmod <- eval(mc, parent.frame(1L)) 
 
   stopifnot(is.list(relmat), length(names(relmat)) == length(relmat))
-  relnms <- names(relmat)
-  relfac <- relmat
-  flist <- glmod$reTrms[["flist"]]   ## list of factors
+  relfac <- list()
   
-  ind <- (relnms %in% names(flist))
-  if(any(ind)) {
-    ## random-effects design matrix components
+  # list of random term factor
+  flist <- glmod$reTrms[["flist"]]
+  fnmns <- names(flist) # e.g. (1|gr) + (1|id) 
+  
+  # list of random term factors with custom covariances
+  # - specified in `relmat` argument
+  # - need special processing
+  relnms <- names(relmat)
+
+  if(any(fnmns %in% relnms)) {
+    # random-effects design matrix components
     Ztlist <- glmod$reTrms[["Ztlist"]]
     
-    asgn <- attr(flist, "assign")
-    for(i in seq_along(relnms[ind])) {
-      relmati <- relnms[ind][i]
-      if(!(relmati %in% names(flist))) {
-        stop("a relationship matrix must be (", relmati, ")",
-          " associated with only one random effects term (", paste(names(flist), collapse = ", "), ")")
-      }
-      tn <- which(relmati == names(flist))
-      fn <- names(flist)[tn]
+    ind <- which(fnmns %in% relnms)
+    for(i in ind) {
+      fn <- fnmns[i]
       
-      ### option 1
-      #zn <- rownames(Ztlist[[tn]]) 
-      # here was the correction: index value is `tn`, rather than `i`
-      ### option 2
-      # > packageVersion("lme4")
-      # [1] ‘1.1.8’
-      #zn <- glmod$fr[, fn]
-      #if(class(rownames(relmat[[i]])) == "character") {
-      #  zn <- as.character(zn)
-      #}
-      #zn.unique <- unique(zn)
-      #stopifnot(length(zn) %% length(zn.unique) == 0)
+      if(debug) {
+        cat(" - Zlist element", i, "/", length(fnmns), ":", fn, "\n")
+      }
 
-      # option 3
       zn <- glmod$fr[, fn]
+      
       if(class(zn) != "factor") {
         zn <- as.factor(zn)
       }
-      zn.unique <- levels(zn) # zn.unique <- unique(zn)      
-      stopifnot(all(zn.unique %in% rownames(relmat[[i]])))
-    
-      ngr <- length(zn.unique)
+      zn.unique <- levels(zn) 
+      
+      stopifnot(!is.null(rownames(relmat[[fn]])))
+      rn <- rownames(relmat[[fn]])
 
-      # check: siquence `zn.unique` exatcly match `zn` inside a block
-      nblocks.x <- length(zn) / length(zn.unique)
-      for(j in 1:nblocks.x) {
-        jnd <- ngr * (j - 1) + seq(1, ngr)
-
-        stopifnot(all(zn[jnd] %in% zn.unique))
-      }
-
-      relmat[[i]] <- Matrix::Matrix(relmat[[i]][zn.unique, zn.unique], sparse = TRUE)
-    
-      relfac[[i]] <- relfac(relmat[[i]], method.relfac)
+      stopifnot(all(zn.unique %in% rn))
+      
+      mat <- Matrix::Matrix(relmat[[fn]][zn.unique, zn.unique], sparse = TRUE)
+      relfac[[fn]] <- relfac(mat, method.relfac)
       
       # ?Matrix::chol
       # Returned value: a matrix of class ‘Cholesky’, i.e., upper triangular: R such that R'R = x.
@@ -172,59 +163,106 @@ relmat_glmer <- function(formula, data = NULL, family = gaussian,
       # @ http://www.journalofanimalscience.org/content/88/2/497.long%5BVazquez%20et%20al.,%202010%5D
       #Ztlist[[i]] <-  relfac[[i]] %*% Ztlist[[i]]
 
-      ### General case: nrow(Ztlist[[i]]) = K * ncol(Ztlist[[i]])
-      stopifnot(nrow(Ztlist[[i]]) %% ncol(Ztlist[[i]]) == 0)
-      nblocks.y <- nrow(Ztlist[[i]]) / ncol(Ztlist[[i]])
-
-      nblocks <- nblocks.x * nblocks.y
-
-      if(nblocks == 1) {
-        Ztlist[[i]] <-  relfac[[i]] %*% Ztlist[[i]]
-      } else {
-        # divide by blocks
-        Ztlisti <- list()
-        
-        for(j in 1:nblocks.y) {
-          jnd <- seq(j,  by = nblocks, length = ngr)
-          Ztlisti[[j]] <- list()
-    
-          for(k in 1:nblocks.x) {
-            knd <- ngr * (k - 1) + seq(1, ngr)
+      if(debug) {
+        cat(" - relfac[[fn]]:", nrow(relfac[[fn]]), "x", ncol(relfac[[fn]]), "\n")
+        cat(" - Ztlist[[i]]:", nrow(Ztlist[[i]]), "x", ncol(Ztlist[[i]]), "\n")
+        print(head(rownames(Ztlist[[i]])))
+      }
       
-            Ztlisti[[j]][[k]] <- Ztlist[[i]][jnd, knd]
-          }
-        }
-        
-        # update per block
-        for(j in 1:nblocks.y) {
-          jnd <- seq(j,  by = nblocks, length = ngr)
-    
-          for(k in 1:nblocks.x) {
-            knd <- ngr * (k - 1) + seq(1, ngr)
+      ncol_relac <- ncol(relfac[[fn]])
+      nrow_Zt <- nrow(Ztlist[[i]])
+      ncol_Zt <- ncol(Ztlist[[i]])
       
-            Ztlisti[[j]][[k]] <- relfac[[i]] %*% Ztlisti[[j]][[k]]
+      # scenario 1
+      if(ncol_relac == nrow_Zt) {
+        Ztlist[[i]] <- relfac[[fn]] %*% Ztlist[[i]]
+      } else if(nrow_Zt > ncol_Zt) {
+        # scenario 2
+        stopifnot(ncol_Zt == ncol_relac)
+        
+        if((nrow_Zt %% ncol_Zt) == 0) {
+          ngr <- length(zn.unique)
+          if(debug) {
+            cat(" - ngr:", ngr, "\n")
+          }    
+          # check: sequence `zn.unique` exatcly match `zn` inside a block
+          nblocks.x <- length(zn) / length(zn.unique)
+          for(j in 1:nblocks.x) {
+            jnd <- ngr * (j - 1) + seq(1, ngr)
+                  
+            stopifnot(all(zn[jnd] %in% zn.unique))
           }
-        }
+      
+          nblocks.y <- nrow(Ztlist[[i]]) / ncol(Ztlist[[i]])
+          nblocks <- nblocks.x * nblocks.y
+          stopifnot(nblocks != 1)
   
-        for(j in 1:nblocks.y) {
-          jnd <- seq(j,  by = nblocks, length = ngr)
+          if(debug) {
+            cat(" - nblocks.x:", nblocks.x, "\n")
+            cat(" - nblocks.y:", nblocks.y, "\n")
+            cat(" - nblocks:", nblocks, "\n")
+          }  
+          
+          # divide by blocks
+          Ztlisti <- list()
+              
+          for(j in 1:nblocks.y) {
+            if(debug) {
+              cat("  --  block", j, "/", nblocks.y, "\n")
+            }
+          
+            jnd <- seq(j, by = nblocks, length = ngr)
+            Ztlisti[[j]] <- list()
     
-          for(k in 1:nblocks.x) {
-            knd <- ngr * (k - 1) + seq(1, ngr)
+            for(k in 1:nblocks.x) {
+              knd <- ngr * (k - 1) + seq(1, ngr)
       
-            Ztlist[[i]][jnd, knd] <- Ztlisti[[j]][[k]]
+              Ztlisti[[j]][[k]] <- Ztlist[[i]][jnd, knd]
+            }
           }
+        
+          # update per block
+          for(j in 1:nblocks.y) {
+            jnd <- seq(j,  by = nblocks, length = ngr)
+    
+            for(k in 1:nblocks.x) {
+              knd <- ngr * (k - 1) + seq(1, ngr)
+       
+              if(debug) {
+                cat(" - relfac[[fn]]:", nrow(relfac[[fn]]), "x", ncol(relfac[[fn]]), "\n")
+                cat(" - Ztlisti[[j]][[k]]:", nrow(Ztlisti[[j]][[k]]), "x", 
+                  ncol(Ztlisti[[j]][[k]]), "\n")
+                print(head(rownames(Ztlisti[[j]][[k]])))
+              }
+      
+              Ztlisti[[j]][[k]] <- relfac[[fn]] %*% Ztlisti[[j]][[k]]
+            }
+          }
+  
+          for(j in 1:nblocks.y) {
+            jnd <- seq(j,  by = nblocks, length = ngr)
+    
+            for(k in 1:nblocks.x) {
+              knd <- ngr * (k - 1) + seq(1, ngr)
+      
+              Ztlist[[i]][jnd, knd] <- Ztlisti[[j]][[k]]
+            }
+          }
+        } else {
+          stop("nrow_Zt > ncol_Zt, but (nrow_Zt %% ncol_Zt) is not zero") 
         }
-      }    
+      } else {
+        stop("nrow_Zt < ncol_Zt")
+      }
     }
   
     glmod$reTrms[["Ztlist"]] <- Ztlist
     glmod$reTrms[["Zt"]] <- do.call(rBind, Ztlist)
   }
   #-------------------------------
-  # End of solaris-specific code
-  #-------------------------------    
-
+  # end of relmatGlmer-specific code
+  #------------------------------- 
+  
   mcout$formula <- glmod$formula # Uncommented line 2
   glmod$formula <- NULL # Uncommented line 3
   

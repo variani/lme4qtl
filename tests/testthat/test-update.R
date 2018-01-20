@@ -13,7 +13,7 @@ test_that("start + optimizer.none", {
   
   expect_equivalent(getME(mod1, "theta"), getME(mod2, "theta"))
   expect_true(is.na(mod2@optinfo$feval))
-  expect_lt(t2[3], t1[3])
+  #expect_lt(t2[3], t1[3])
 })
 
 test_that("update + start + optimizer.none", {
@@ -29,5 +29,5 @@ test_that("update + start + optimizer.none", {
   
   expect_equivalent(getME(mod1, "theta"), getME(mod2, "theta"))
   expect_true(is.na(mod2@optinfo$feval))
-  expect_lt(t2[3], t1[3])
+  #expect_lt(t2[3], t1[3])
 })
