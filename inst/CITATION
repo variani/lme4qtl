@@ -1,0 +1,21 @@
+citHeader("To cite the 'lme4qtl' package in publications use:")
+
+citEntry(
+  entry="Article",
+  title = "lme4qtl: linear mixed models with flexible covariance structure for genetic studies of related individuals",
+  author = personList(
+    as.person("Andrey Ziyatdinov"),
+    as.person("Miquel Vazquez-Santiago"),
+    as.person("Helena Brunel"),
+    as.person("Angel Martinez-Perez"),
+    as.person("Hugues Aschard"),
+    as.person("Jose Manuel Soria")),
+  year = "2018",
+  publisher = "BioMed Central", 
+  journal = "BMC Bioinformatics",
+  pages = "btw080",
+  url = "http://dx.doi.org/10.1186/s12859-018-2057-x",
+  textVersion =  paste("Ziyatdinov et al., ",
+    "lme4qtl: linear mixed models with flexible covariance structure for genetic studies of related individuals, ",
+    "BMC Bioinformatics (2018)")  
+)
