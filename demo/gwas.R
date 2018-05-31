@@ -1,8 +1,9 @@
 ### install
 # library(devtools)
 # install_github("variani/matlm")
-# install_github("variani/wlm")
+# install_github("variani/gls")
 # install_github("variani/qq")
+# install_github("variani/lme4qtl")
 
 ### inc
 library(Matrix)
@@ -12,7 +13,7 @@ library(ggplot2)
 library(lme4qtl) 
 # for Step 2: association tests
 library(matlm) 
-library(wlm) 
+library(gls) 
 # for Step 3: explore GWAS results
 library(qq)
 
@@ -50,26 +51,37 @@ V_thr[abs(V) < 1e-10] <- 0
 Matrix::image(V_thr[1:20, 1:20], main = "Estimated V (with artifacts removed)")
 
 #-------
-#
+# Step 2:
+# - perform association test on M predictors
+# - examimed several combinations:
+#   - linear models (least squares) vs. generalized least squares that takes V as input
+#   - binary genotypes (simulated with no structure) vs. cont. predictors (simultaed as ~ MVN(0, kin2))
 #-------
-decomp <- wlm::decompose_varcov(V, method = "evd", output = "all")
+# transformation on data (due to structure in V) needs to be computed once 
+# (note: EVD (not Cholesky) is required; otherwise, missing data would produce messy results)
+decomp <- gls::decompose_varcov(V, method = "evd", output = "all")
 W <- decomp$transform
 
 gassoc_lm <- matlm::matlm(trait1 ~ AGE, dat40, pred = gdat40, ids = ids,
   batch_size = 100, verbose = 2)
-gassoc_wlm <- matlm::matlm(trait1 ~ AGE, dat40, pred = gdat40, ids = ids, transform = W, 
+gassoc_gls <- matlm::matlm(trait1 ~ AGE, dat40, pred = gdat40, ids = ids, transform = W, 
   batch_size = 100, verbose = 2)
 
 passoc_lm <- matlm::matlm(trait1 ~ AGE, dat40, pred = pdat40, ids = ids,
   batch_size = 100, verbose = 2)
-passoc_wlm <- matlm::matlm(trait1 ~ AGE, dat40, pred = pdat40, ids = ids, transform = W, 
+passoc_gls <- matlm::matlm(trait1 ~ AGE, dat40, pred = pdat40, ids = ids, transform = W, 
   batch_size = 100, verbose = 2)
   
 #-------
-#
+# Step 3:
+# - QQ plots
+#   - the first two plots shows that both LS & LMM/WLS approches gives valid results,
+#     because binary genotype predictors (gdat40) were simulated without any link to 
+#     data structure in kin2
+#   - the last plots shows that LMM/GWAS produced a valid distribution of p-values
 #-------
-qq_plot(gassoc_lm$tab$pval) + ggtitle("LS: (null) random binary genotypes (not linked to kin2)")
-qq_plot(gassoc_wlm$tab$pval) + ggtitle("LMM/WLS: (null) random binary genotypes (not linked to kin2)")
+qq:qq_plot(gassoc_lm$tab$pval) + ggtitle("LS: (null) random binary genotypes (not linked to kin2)")
+qq:qq_plot(gassoc_gls$tab$pval) + ggtitle("LMM/WLS: (null) random binary genotypes (not linked to kin2)")
 
-qq_plot(passoc_lm$tab$pval) + ggtitle("LS: (null) random cont. predictors (linked to kin2)")
-qq_plot(passoc_wlm$tab$pval) + ggtitle("LMM/WLS: (null) random cont. predictors (linked to kin2)")
+qq:qq_plot(passoc_lm$tab$pval) + ggtitle("LS: (null) random cont. predictors (linked to kin2)")
+qq:qq_plot(passoc_gls$tab$pval) + ggtitle("LMM/WLS: (null) random cont. predictors (linked to kin2)")
