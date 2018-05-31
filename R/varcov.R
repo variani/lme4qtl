@@ -1,4 +1,5 @@
 
+#' @export
 varcov <- function(mod, comp, scaled = TRUE, residual = TRUE,
   idvar, ids)
 {
