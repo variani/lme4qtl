@@ -1,8 +1,10 @@
 ### install
 # library(devtools)
 # install_github("variani/matlm")
-# install_github("variani/gls")
+# install_github("variani/wlm")
 # install_github("variani/qq")
+# 
+# re-install lme4qtl if necessary (e.g. for `varcov` fun. was not exported prev.)
 # install_github("variani/lme4qtl")
 
 ### inc
@@ -13,7 +15,7 @@ library(ggplot2)
 library(lme4qtl) 
 # for Step 2: association tests
 library(matlm) 
-library(gls) 
+library(wlm) 
 # for Step 3: explore GWAS results
 library(qq)
 
@@ -25,11 +27,12 @@ data(dat40, package = "lme4qtl")
 N <- nrow(dat40) # the number of ind.
 ids <- dat40$ID # individual IDs
 
-# simulate (null) random genotypes (0/1 with 50% prob.)
+# simulate (null) random genotypes (0/1 with 50% prob.; not linked to `kin2`
 gdat40 <- matrix(rbinom(N*M, 1, 0.5), nrow = N, ncol = M)
 rownames(gdat40) <- ids
 colnames(gdat40) <- paste0("snp", seq(1, ncol(gdat40)))
 
+# simulate (null) random cont. predictors (linked to `kin2`) by MVN ~ (0, kin2)
 pdat40 <- t(mvrnorm(M, rep(0, N), kin2))
 rownames(gdat40) <- ids
 colnames(gdat40) <- paste0("pred", seq(1, ncol(gdat40)))
@@ -40,6 +43,9 @@ colnames(gdat40) <- paste0("pred", seq(1, ncol(gdat40)))
 # - extract variance-covariance matrix `V`
 #-----------------------------------------------
 mod <- lme4qtl::relmatLmer(trait1 ~ AGE + (1|FAMID) + (1|ID), dat40, relmat = list(ID = kin2))
+# in case of convergence problems, one might try/experiment with:
+# - relmatLmer(trait1 ~ AGE + (1|FAMID) + (1|ID), dat40, relmat = list(ID = kin2), calc.derivs = FALSE)
+# - relmatLmer(trait1 ~ AGE + (1|FAMID) + (1|ID), dat40, relmat = list(ID = kin2), calc.derivs = FALSE, control = lmerControl(optimizer = "bobyqa", check.conv.grad = list(action = "warning", tol = 0.005, relTol = NULL)))
 
 V <- lme4qtl::varcov(mod, idvar = "ID")
 
@@ -55,11 +61,11 @@ Matrix::image(V_thr[1:20, 1:20], main = "Estimated V (with artifacts removed)")
 # - perform association test on M predictors
 # - examimed several combinations:
 #   - linear models (least squares) vs. generalized least squares that takes V as input
-#   - binary genotypes (simulated with no structure) vs. cont. predictors (simultaed as ~ MVN(0, kin2))
+#   - binary genotypes (simulated with no structure) vs. cont. predictors
 #-------
 # transformation on data (due to structure in V) needs to be computed once 
 # (note: EVD (not Cholesky) is required; otherwise, missing data would produce messy results)
-decomp <- gls::decompose_varcov(V, method = "evd", output = "all")
+decomp <- wlm::decompose_varcov(V, method = "evd", output = "all")
 W <- decomp$transform
 
 gassoc_lm <- matlm::matlm(trait1 ~ AGE, dat40, pred = gdat40, ids = ids,
@@ -75,13 +81,17 @@ passoc_gls <- matlm::matlm(trait1 ~ AGE, dat40, pred = pdat40, ids = ids, transf
 #-------
 # Step 3:
 # - QQ plots
-#   - the first two plots shows that both LS & LMM/WLS approches gives valid results,
+#   - the first two plots shows that both LS & LMM/WLS approches give valid results,
 #     because binary genotype predictors (gdat40) were simulated without any link to 
 #     data structure in kin2
-#   - the last plots shows that LMM/GWAS produced a valid distribution of p-values
+#   - the last plots shows that LMM/GWAS produces a valid distribution of p-values,
+#     while LS shows an inflated Type I error rate
 #-------
-qq:qq_plot(gassoc_lm$tab$pval) + ggtitle("LS: (null) random binary genotypes (not linked to kin2)")
-qq:qq_plot(gassoc_gls$tab$pval) + ggtitle("LMM/WLS: (null) random binary genotypes (not linked to kin2)")
+qq::qq_plot(gassoc_lm$tab$pval) + ggtitle("LS: (null) random binary genotypes (not linked to kin2)")
+qq::qq_plot(gassoc_gls$tab$pval) + ggtitle("LMM/WLS: (null) random binary genotypes (not linked to kin2)")
 
-qq:qq_plot(passoc_lm$tab$pval) + ggtitle("LS: (null) random cont. predictors (linked to kin2)")
-qq:qq_plot(passoc_gls$tab$pval) + ggtitle("LMM/WLS: (null) random cont. predictors (linked to kin2)")
+qq::qq_plot(passoc_lm$tab$pval) + ggtitle("LS: (null) random cont. predictors (linked to kin2)")
+qq::qq_plot(passoc_gls$tab$pval) + ggtitle("LMM/WLS: (null) random cont. predictors (linked to kin2)")
+
+
+
