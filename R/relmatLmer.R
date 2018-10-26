@@ -466,6 +466,9 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
     mod <- mkMerMod(environment(devfun), opt, lmod$reTrms, fr = lmod$fr, mcout, lme4conv = cc) ## prepare output
   }
   
+  # adhoc solution to store `relmatLmer` variables in an object of `lmerMod` class 
+  mod@optinfo$relmat <- list(relfac = relfac)
+  
   return(mod)
 }## { lmer }
 

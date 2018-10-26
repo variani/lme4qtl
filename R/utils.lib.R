@@ -66,7 +66,7 @@ relfac <- function(mat, method.relfac = "auto", tol.relfac.svd = 1e-10, tol.relf
   # inc
   stopifnot(requireNamespace("Matrix", quietly = TRUE))
   
-  switch(method.relfac, 
+  rmat <- switch(method.relfac, 
     "chol" = relfac.chol(mat),
     "svd" = relfac.svd(mat, tol.relfac.svd),
     "evd" = relfac.evd(mat, tol.relfac.evd),
@@ -90,6 +90,11 @@ relfac <- function(mat, method.relfac = "auto", tol.relfac.svd = 1e-10, tol.relf
       rmat
     },
     stop())
+    
+  rownames(rmat) <- rownames(mat)
+  colnames(rmat) <- colnames(mat)
+    
+  return(rmat)
 }
 
 relfac.chol <- function(mat)
@@ -248,10 +253,38 @@ VarProp <- function(x)
   return(vf)
 }
 
+#--------------------
+# ranef functions
+#--------------------
 
+#' @export
+relmatRanef <- function(x, whichel, ...) 
+{
+  if(missing(whichel)) {
+    stop(paste("Specify a single name of random effect. Available names:", 
+      paste(names(ranef(x)), collapse = ", "))) 
+  }
+  
+  pred <- ranef(x, whichel = whichel)[[whichel]]
+  stopifnot(ncol(pred) == 1)
+  nms <- rownames(pred)
+  pred <- pred[, 1]
 
+  # derive the transformed prediction (if necessary)
+  relfac <- x@optinfo$relmat$relfac
+  
+  if(whichel %in% names(relfac)) {
+    relfac <- relfac[[whichel]]
 
-
+    relfac <- relfac[nms, nms] # to make sure names are the same
+  
+    # see https://github.com/cran/pedigreemm/blob/master/R/pedigree.R#L367 
+    pred <- crossprod(pred, relfac) %>% as.numeric
+    names(pred) <- nms
+  }
+  
+  return(pred)
+}
 
 
 
