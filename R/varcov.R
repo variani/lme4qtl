@@ -11,11 +11,10 @@ varcov <- function(mod, comp, scaled = TRUE, residual = TRUE,
   
   # estimate varcov matrix
   n <- lme4::getME(mod, "n")
-  s2 <- sigma(mod)^2
   
   if(all_comp) { 
-    varcov <-  s2 * (tcrossprod(crossprod(lme4::getME(mod, "Zt"), 
-      lme4::getME(mod, "Lambda"))) + Diagonal(n))
+    varcov <- tcrossprod(crossprod(lme4::getME(mod, "Zt"), 
+      lme4::getME(mod, "Lambda"))) + Diagonal(n)
   } else {
     Lambda <- lme4::getME(mod, "Lambda")
   
@@ -45,10 +44,11 @@ varcov <- function(mod, comp, scaled = TRUE, residual = TRUE,
     if(!residual) {
       varcov <- varcov - Diagonal(n)
     }
-    
-    if(!scaled) {
-      varcov <- s2 * varcov
-    }
+  }
+ 
+  if(!scaled) {
+    s2 <- sigma(mod)^2
+    varcov <- s2 * varcov
   }
   
   if(!missing_idvar) {
