@@ -93,7 +93,7 @@ relfac <- function(mat, method.relfac = "auto", tol.relfac.svd = 1e-10, tol.relf
     
   rownames(rmat) <- rownames(mat)
   colnames(rmat) <- colnames(mat)
-    
+  
   return(rmat)
 }
 
@@ -117,7 +117,8 @@ relfac.svd <- function(mat, tol.relfac.svd)
   ind <- (abs(Lt) < tol.relfac.svd)
   Lt[ind] <- 0
   
-  Matrix::Matrix(Lt)
+  #Matrix::Matrix(Lt)
+  as(Lt, "dgCMatrix")
 }
 
 relfac.evd <- function(mat, tol)
@@ -141,7 +142,8 @@ relfac.evd <- function(mat, tol)
   # return
   R <- diag(sqrt(out$values)) %*% t(out$vectors)
   
-  return(Matrix::Matrix(R))
+  #return(Matrix::Matrix(R))
+  return(as(R, "dgCMatrix"))
   
   ### old code
   if(length(ind)) {
