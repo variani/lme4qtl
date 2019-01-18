@@ -1,10 +1,11 @@
-### install
-# library(devtools)
-# install_github("variani/matlm")
 # A version of fast GWAS, when 
 # (i) mixed model is fitted once (without any SNP as covariate);
 # (ii) each SNP is tested using variance components etimated at step (i).
 
+### install
+# library(devtools)
+# install_github("variani/matlm")
+#
 # install_github("variani/wlm")
 # install_github("variani/qq")
 # 
