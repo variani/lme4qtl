@@ -1,6 +1,10 @@
 ### install
 # library(devtools)
 # install_github("variani/matlm")
+# A version of fast GWAS, when 
+# (i) mixed model is fitted once (without any SNP as covariate);
+# (ii) each SNP is tested using variance components etimated at step (i).
+
 # install_github("variani/wlm")
 # install_github("variani/qq")
 # 
@@ -11,7 +15,7 @@
 library(Matrix)
 library(MASS)
 library(ggplot2)
-# for Step 1: linear mixed model
+# for Step 1: linear mixed model (no SNPs)
 library(lme4qtl) 
 # for Step 2: association tests
 library(matlm) 
@@ -27,7 +31,7 @@ data(dat40, package = "lme4qtl")
 N <- nrow(dat40) # the number of ind.
 ids <- dat40$ID # individual IDs
 
-# simulate (null) random genotypes (0/1 with 50% prob.; not linked to `kin2`
+# simulate (null) random genotypes (0/1 with 50% prob.; not linked to `kin2`)
 gdat40 <- matrix(rbinom(N*M, 1, 0.5), nrow = N, ncol = M)
 rownames(gdat40) <- ids
 colnames(gdat40) <- paste0("snp", seq(1, ncol(gdat40)))
@@ -39,7 +43,7 @@ colnames(gdat40) <- paste0("pred", seq(1, ncol(gdat40)))
 
 #-----------------------------------------------
 # Step 1: 
-# - fit base model (not SNPs) 
+# - fit base model (no SNPs) 
 # - extract variance-covariance matrix `V`
 #-----------------------------------------------
 mod <- lme4qtl::relmatLmer(trait1 ~ AGE + (1|FAMID) + (1|ID), dat40, relmat = list(ID = kin2))
@@ -58,10 +62,10 @@ Matrix::image(V_thr[1:20, 1:20], main = "Estimated V (with artifacts removed)")
 
 #-------
 # Step 2:
-# - perform association test on M predictors
+# - perform association tests on M predictors
 # - examimed several combinations:
-#   - linear models (least squares) vs. generalized least squares that takes V as input
-#   - binary genotypes (simulated with no structure) vs. cont. predictors
+#   - linear models: least squares (LS) vs. generalized least squares (GLS) that takes V as input
+#   - binary genotypes (simulated with no structure) vs. cont. predictors (linked to kin2)
 #-------
 # transformation on data (due to structure in V) needs to be computed once 
 # (note: EVD (not Cholesky) is required; otherwise, missing data would produce messy results)
@@ -81,10 +85,10 @@ passoc_gls <- matlm::matlm(trait1 ~ AGE, dat40, pred = pdat40, ids = ids, transf
 #-------
 # Step 3:
 # - QQ plots
-#   - the first two plots shows that both LS & LMM/WLS approches give valid results,
+#   - the first two plots show that both LS & GLS approches give valid results,
 #     because binary genotype predictors (gdat40) were simulated without any link to 
 #     data structure in kin2
-#   - the last plots shows that LMM/GWAS produces a valid distribution of p-values,
+#   - the last plots show that GLS produces a valid distribution of p-values,
 #     while LS shows an inflated Type I error rate
 #-------
 qq::qq_plot(gassoc_lm$tab$pval) + ggtitle("LS: (null) random binary genotypes (not linked to kin2)")
