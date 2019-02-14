@@ -155,7 +155,7 @@ relmat_glmer <- function(formula, data = NULL, family = gaussian,
       relfac[[fn]] <- relfac(mat, method.relfac)
       
       # ?Matrix::chol
-      # Returned value: a matrix of class ‘Cholesky’, i.e., upper triangular: R such that R'R = x.
+      # Returned value: a matrix of class Cholesky, i.e., upper triangular: R such that R'R = x.
       # Note that another notation is equivalent x = L L', where L is a lower triangular 
       # @ http://en.wikipedia.org/wiki/Cholesky_decomposition
 

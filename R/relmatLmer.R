@@ -137,7 +137,7 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
       relfac[[fn]] <- relfac(mat, method.relfac)
       
       # ?Matrix::chol
-      # Returned value: a matrix of class ‘Cholesky’, i.e., upper triangular: R such that R'R = x.
+      # Returned value: a matrix of class Cholesky, i.e., upper triangular: R such that R'R = x.
       # Note that another notation is equivalent x = L L', where L is a lower triangular 
       # @ http://en.wikipedia.org/wiki/Cholesky_decomposition
 
@@ -513,7 +513,7 @@ relmatLmer2 <- function(formula, data = NULL,
       # here was the correction: index value is `tn`, rather than `i`
       ### option 2
       # > packageVersion("lme4")
-      # [1] ‘1.1.8’
+      # [1] 1.1.8
       zn <- lmod$fr[, fn]
       if(class(rownames(relmat[[i]])) == "character") {
         zn <- as.character(zn)
@@ -524,7 +524,7 @@ relmatLmer2 <- function(formula, data = NULL,
     
       relfac[[i]] <- Matrix::chol(relmat[[i]])
       # ?Matrix::chol
-      # Returned value: a matrix of class ‘Cholesky’, i.e., upper triangular: R such that R'R = x.
+      # Returned value: a matrix of class Cholesky, i.e., upper triangular: R such that R'R = x.
       # Note that another notation is equivalent x = L L', where L is a lower triangular 
       # @ http://en.wikipedia.org/wiki/Cholesky_decomposition
       Ztlist[[i]] <-  relfac[[i]] %*% Ztlist[[i]]
