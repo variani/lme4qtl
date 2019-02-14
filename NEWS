@@ -1,3 +1,11 @@
+lme4qtl 0.1.11
+=============
+
+- Fixed issue #1 (https://github.com/variani/lme4qtl/issues/1).
+  lme4 threw the "error with reference class field ‘Ut’, should be from class “dgCMatrix”",
+  when lme4qtl decomposed the custom covariance matrix as A = R'R.
+  That was solved using `as(R, "dgCMatrix")` instead of `as.Matrix(R) in `relfac` functions.
+
 lme4qtl 0.1.10
 =============
 
