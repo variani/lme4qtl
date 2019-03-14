@@ -48,7 +48,7 @@ test_that("equivalence on (1|plate) and K", {
 
   m2 <- relmatLmer(diameter ~ (1|id), Penicillin, relmat = list(id = K))
 
-  expect_true(abs(getME(m1, "theta") - getME(m2, "theta")) < 1e-6) 
+  expect_true(abs(getME(m1, "theta") - getME(m2, "theta")) < 1e-4) 
 })
 
 test_that("relfac methods for h2 estimation", {
