@@ -109,17 +109,18 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
   # - need special processing
   relnms <- names(relmat)
 
-   for(i in seq_along(fnmns)) {
-    fn = fnmns[i]
-    if(fn %in% relnms) {
+  for(i in seq_along(fnmns)) {
+    fn <- fnmns[i]
+    
+    if(fn %in% relnms) { # update only when matching; otherwise, ignore
       if(debug) {
         cat(" - Zlist element", fn, "\n")
       }
       
       # check names
       zn <- lmod$fr[, fn]
-      if(class(zn) != "factor") {
-        zn <- as.factor(zn)
+      if(class(zn) != "factor") { # convert to factor
+        zn <- as.factor(zn) 
       }
       zn.unique <- levels(zn)
 
@@ -160,7 +161,6 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
   }
   # update the full Zt matrix (the slot `Zt`) by combining all Zt matrices (the slot `Ztlist`)
   lmod$reTrms[["Zt"]] <- do.call(rBind, lmod$reTrms$Ztlist)
-  
   #-------------------------------
   # end of relmatLmer-specific code
   #------------------------------- 
