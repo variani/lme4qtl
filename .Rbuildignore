@@ -12,3 +12,4 @@ data/solarOutput
 data/dat.RData
 
 ^\.travis\.yml$
+^README\.Rmd$

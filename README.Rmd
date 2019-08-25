@@ -1,0 +1,86 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+# lme4qtl
+
+<!-- badges: start -->
+[![travis-ci build status](https://travis-ci.org/variani/lme4qtl.svg?branch=master)](https://travis-ci.org/variani/lme4qtl)
+<!-- badges: end -->
+
+`lme4qtl` extends the [lme4](https://github.com/lme4/lme4) R package for quantitative trait locus (qtl) mapping. It is all about the covariance structure of random effects. `lme4qtl` supports user-defined matrices for that,
+e.g. kinship or IBDs.
+
+See slides [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ) introducing the `lme4qtl` R package or read our [article](http://dx.doi.org/10.1186/s12859-018-2057-x) / [preprint](http://www.biorxiv.org/content/early/2017/08/31/139816).
+
+|  Package | Continuous response |
+|----------|---------------------|
+| stats   | `lm(myTrait ~ myCovariate, myData)` |
+| lme4    | `lmer(myTrait ~ myCovariate + (1\|myID), myData)` |
+| lme4qtl | `relmatLmer(myTrait ~ myCovariate + (1\|myID), myData, relmat = list(myID = myMatrix))` |
+
+|  Package | Binary response |
+|----------|---------------------|
+| stats    | `glm(myStatus ~ 1, myData, family = binomial)` |
+| lme4    | `glmer(myStatus ~ (1\|myID), myData, family = binomial)` |
+| lme4qtl | `relmatGlmer(myStatus ~ (1\|myID), myData, relmat = list(myID = myMatrix), family = binomial)` |
+
+Note that rownames/colnames of `myMatrix` have to be values of `myID` variable, so matching between relationship matrix and grouping variable is possible. The order doesn't matter.
+
+## Installation
+
+You can install the development version from [GitHub](https://github.com/variani/lme4qtl) with:  
+
+``` r
+# install.packages("devtools")
+devtools::install_github("variani/lme4qtl")
+```
+
+The official release on [CRAN](https://CRAN.R-project.org) is [pending](https://github.com/variani/lme4qtl/issues/9).
+
+## Example
+
+```{r ex}
+library(lme4qtl)
+
+# load simulated data: phenotypes in `dat40` and kinship in `kin2`
+data(dat40, package = "lme4qtl")
+
+# fit a model for continuous trait 
+m1 <- relmatLmer(trait1 ~ AGE + SEX + (1|FAMID) + (1|ID), dat40, relmat = list(ID = kin2))
+m1
+
+# get an estimate of h2, the proportion of variance explained by (1|ID)
+lme4::VarCorr(m1)
+lme4qtl::VarProp(m1)
+
+# fir a model model for binary trait
+m2 <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family = binomial)
+m2
+```
+
+## Citation
+
+To cite the `lme4qtl` package in publications use:
+
+```
+  Ziyatdinov et al., lme4qtl: linear mixed models with flexible
+  covariance structure for genetic studies of related individuals, 
+  BMC Bioinformatics (2018)
+```
+
+
+## Contact
+
+You are welcome to submit suggestions and bug-reports at https://github.com/variani/lme4qtl/issues.
+
