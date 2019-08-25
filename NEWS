@@ -1,3 +1,13 @@
+lme4qtl 0.2.1
+=============
+
+- Merged with #18 and its extension #19.
+  The new update of Z-matrices by the Khatri-Rao product (proposed by @deruncie)
+  is more elegant and in accordance with the lme4 implementation;
+  see https://github.com/variani/lme4qtl/pull/18#issuecomment-510646099.
+  Now creating models with polygenic slopes is possible;
+  see code examples (model `m6` and `m6b`) in #18.
+
 lme4qtl 0.1.11
 =============
 
