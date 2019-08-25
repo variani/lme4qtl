@@ -113,7 +113,7 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
     fn = fnmns[i]
     if(fn %in% relnms) {
       if(debug) {
-        cat((" - Zlist element", fn, "\n")
+        cat(" - Zlist element", fn, "\n")
       }
       
       # check names
@@ -131,7 +131,7 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
       # compute a relative factor R: K = R'R
       # See lme4qtl:::relfac
       K <- Matrix::Matrix(relmat[[fn]][zn.unique, zn.unique], sparse = TRUE)
-      R <- relfac(Ki, method.relfac)
+      R <- relfac(K, method.relfac)
       relfac[[fn]] <- R
 
       # compute a substitution Z*
@@ -152,7 +152,7 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
       
       pi <- length(lmod$reTrms$cnms[[i]])
       Zi_t <- lmod$reTrms$Ztlist[[i]] 
-      Zi_t <- kronecker(Ki_sqrt, diag(1, pi)) %*% Zi_t # t(Z*)
+      Zi_t <- kronecker(R, diag(1, pi)) %*% Zi_t # t(Z*)
 
       # put the new t(Z*) back into the appropriate slot `Ztlist`
       lmod$reTrms$Ztlist[[i]] <- Zi_t
