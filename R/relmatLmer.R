@@ -109,140 +109,60 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
   # - need special processing
   relnms <- names(relmat)
 
-  if(any(fnmns %in% relnms)) {
-    # random-effects design matrix components
-    Ztlist <- lmod$reTrms[["Ztlist"]]
+  for(i in seq_along(fnmns)) {
+    fn <- fnmns[i]
     
-    ind <- which(fnmns %in% relnms)
-    for(i in ind) {
-      fn <- fnmns[i]
-      
+    if(fn %in% relnms) { # update only when matching; otherwise, ignore
       if(debug) {
-        cat(" - Zlist element", i, "/", length(fnmns), ":", fn, "\n")
+        cat(" - Zlist element", fn, "\n")
       }
-
+      
+      # check names
       zn <- lmod$fr[, fn]
-      
-      if(class(zn) != "factor") {
-        zn <- as.factor(zn)
+      if(class(zn) != "factor") { # convert to factor
+        zn <- as.factor(zn) 
       }
-      zn.unique <- levels(zn) 
-      
+      zn.unique <- levels(zn)
+
       stopifnot(!is.null(rownames(relmat[[fn]])))
       rn <- rownames(relmat[[fn]])
 
       stopifnot(all(zn.unique %in% rn))
       
-      mat <- Matrix::Matrix(relmat[[fn]][zn.unique, zn.unique], sparse = TRUE)
-      relfac[[fn]] <- relfac(mat, method.relfac)
-      
-      # ?Matrix::chol
-      # Returned value: a matrix of class Cholesky, i.e., upper triangular: R such that R'R = x.
-      # Note that another notation is equivalent x = L L', where L is a lower triangular 
-      # @ http://en.wikipedia.org/wiki/Cholesky_decomposition
+      # compute a relative factor R: K = R'R
+      # See lme4qtl:::relfac
+      K <- Matrix::Matrix(relmat[[fn]][zn.unique, zn.unique], sparse = TRUE)
+      R <- relfac(K, method.relfac)
+      relfac[[fn]] <- R
 
-      # If the substitution is Z* = Z L, then Z*' = L' Z' = R Z'
-      # @ http://www.journalofanimalscience.org/content/88/2/497.long%5BVazquez%20et%20al.,%202010%5D
-      #Ztlist[[i]] <-  relfac[[i]] %*% Ztlist[[i]]
+      # compute a substitution Z*
+      # 1. for random effects ~(1|f): Z* = R Z'
+      # 2. for random effects ~(r | f)
+      #   r is used to construct the "raw random effects model matrix Xi (n x pi) for term i
+      #   f is used to for the grouping factor model matrix Ji (n x qi) for a factor with qi levels.
+      #       These levels correspond to levels(flist[[fnmn]]) and are used to index the rows/columns of Ki
+      # Following Bates, et al "Fitting Linear Mixed-Effects Models Using lme4",
+      # these are combined into the matrix Zi = t(KhatriRao(t(Ji), t(Xi)))
+      # 
+      # We want to modify Zi to: t(KhatriRao(t(Ji %*% t(R)), t(Xi))), 
+      # where t(R) %*% R = K, eg. Cholesky
+      #
+      # This is equal to Zi %*% kronecker(t(K_sqrt),diag(1,pi))
+      #
+      # See github.com/variani/lme4qtl/pull/18 contributed by github.com/deruncie
+      
+      pi <- length(lmod$reTrms$cnms[[i]])
+      Zi_t <- lmod$reTrms$Ztlist[[i]] 
+      Zi_t <- kronecker(R, diag(1, pi)) %*% Zi_t # t(Z*)
 
-      if(debug) {
-        cat(" - relfac[[fn]]:", nrow(relfac[[fn]]), "x", ncol(relfac[[fn]]), "\n")
-        cat(" - Ztlist[[i]]:", nrow(Ztlist[[i]]), "x", ncol(Ztlist[[i]]), "\n")
-        print(head(rownames(Ztlist[[i]])))
-      }
-      
-      ncol_relac <- ncol(relfac[[fn]])
-      nrow_Zt <- nrow(Ztlist[[i]])
-      ncol_Zt <- ncol(Ztlist[[i]])
-      
-      # scenario 1
-      if(ncol_relac == nrow_Zt) {
-        Ztlist[[i]] <- relfac[[fn]] %*% Ztlist[[i]]
-      } else if(nrow_Zt > ncol_Zt) {
-        # scenario 2
-        stopifnot(ncol_Zt == ncol_relac)
-        
-        if((nrow_Zt %% ncol_Zt) == 0) {
-          ngr <- length(zn.unique)
-          if(debug) {
-            cat(" - ngr:", ngr, "\n")
-          }    
-          # check: sequence `zn.unique` exatcly match `zn` inside a block
-          nblocks.x <- length(zn) / length(zn.unique)
-          for(j in 1:nblocks.x) {
-            jnd <- ngr * (j - 1) + seq(1, ngr)
-                  
-            stopifnot(all(zn[jnd] %in% zn.unique))
-          }
-      
-          nblocks.y <- nrow(Ztlist[[i]]) / ncol(Ztlist[[i]])
-          nblocks <- nblocks.x * nblocks.y
-          stopifnot(nblocks != 1)
-  
-          if(debug) {
-            cat(" - nblocks.x:", nblocks.x, "\n")
-            cat(" - nblocks.y:", nblocks.y, "\n")
-            cat(" - nblocks:", nblocks, "\n")
-          }  
-          
-          # divide by blocks
-          Ztlisti <- list()
-              
-          for(j in 1:nblocks.y) {
-            if(debug) {
-              cat("  --  block", j, "/", nblocks.y, "\n")
-            }
-          
-            jnd <- seq(j, by = nblocks, length = ngr)
-            Ztlisti[[j]] <- list()
-    
-            for(k in 1:nblocks.x) {
-              knd <- ngr * (k - 1) + seq(1, ngr)
-      
-              Ztlisti[[j]][[k]] <- Ztlist[[i]][jnd, knd]
-            }
-          }
-        
-          # update per block
-          for(j in 1:nblocks.y) {
-            jnd <- seq(j,  by = nblocks, length = ngr)
-    
-            for(k in 1:nblocks.x) {
-              knd <- ngr * (k - 1) + seq(1, ngr)
-       
-              if(debug) {
-                cat(" - relfac[[fn]]:", nrow(relfac[[fn]]), "x", ncol(relfac[[fn]]), "\n")
-                cat(" - Ztlisti[[j]][[k]]:", nrow(Ztlisti[[j]][[k]]), "x", 
-                  ncol(Ztlisti[[j]][[k]]), "\n")
-                print(head(rownames(Ztlisti[[j]][[k]])))
-              }
-      
-              Ztlisti[[j]][[k]] <- relfac[[fn]] %*% Ztlisti[[j]][[k]]
-            }
-          }
-  
-          for(j in 1:nblocks.y) {
-            jnd <- seq(j,  by = nblocks, length = ngr)
-    
-            for(k in 1:nblocks.x) {
-              knd <- ngr * (k - 1) + seq(1, ngr)
-      
-              Ztlist[[i]][jnd, knd] <- Ztlisti[[j]][[k]]
-            }
-          }
-        } else {
-          stop("nrow_Zt > ncol_Zt, but (nrow_Zt %% ncol_Zt) is not zero") 
-        }
-      } else {
-        stop("nrow_Zt < ncol_Zt")
-      }
+      # put the new t(Z*) back into the appropriate slot `Ztlist`
+      lmod$reTrms$Ztlist[[i]] <- Zi_t
     }
-  
-    lmod$reTrms[["Ztlist"]] <- Ztlist
-    lmod$reTrms[["Zt"]] <- do.call(rBind, Ztlist)
   }
+  # update the full Zt matrix (the slot `Zt`) by combining all Zt matrices (the slot `Ztlist`)
+  lmod$reTrms[["Zt"]] <- do.call(rBind, lmod$reTrms$Ztlist)
   #-------------------------------
-  # end of solaris-specific code
+  # end of relmatLmer-specific code
   #------------------------------- 
     
   mcout$formula <- lmod$formula
@@ -470,9 +390,9 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
   mod@optinfo$relmat <- list(relfac = relfac)
   
   return(mod)
-}## { lmer }
+}
 
-relmatLmer2 <- function(formula, data = NULL, 
+relmatLmer_naive <- function(formula, data = NULL, 
   start = NULL,
   relmat = list()
 )
@@ -485,7 +405,7 @@ relmatLmer2 <- function(formula, data = NULL,
   lmod <- lFormula(formula, data, control = control)
   
   #-------------------------------
-  # start of solaris-specific code
+  # start of relmatLmer-specific code
   #-------------------------------
   stopifnot(is.list(relmat), length(names(relmat)) == length(relmat))
   relnms <- names(relmat)
@@ -508,12 +428,6 @@ relmatLmer2 <- function(formula, data = NULL,
       tn <- which(relmati == names(flist))
       fn <- names(flist)[tn]
       
-      ### option 1
-      #zn <- rownames(Ztlist[[tn]]) 
-      # here was the correction: index value is `tn`, rather than `i`
-      ### option 2
-      # > packageVersion("lme4")
-      # [1] 1.1.8
       zn <- lmod$fr[, fn]
       if(class(rownames(relmat[[i]])) == "character") {
         zn <- as.character(zn)
@@ -523,20 +437,13 @@ relmatLmer2 <- function(formula, data = NULL,
       stopifnot(nrow(relmat[[i]]) == nrow(lmod$fr))
     
       relfac[[i]] <- Matrix::chol(relmat[[i]])
-      # ?Matrix::chol
-      # Returned value: a matrix of class Cholesky, i.e., upper triangular: R such that R'R = x.
-      # Note that another notation is equivalent x = L L', where L is a lower triangular 
-      # @ http://en.wikipedia.org/wiki/Cholesky_decomposition
       Ztlist[[i]] <-  relfac[[i]] %*% Ztlist[[i]]
-      # If the substitution is Z* = Z L, then Z*' = L' Z' = R Z'
-      # @ http://www.journalofanimalscience.org/content/88/2/497.long%5BVazquez%20et%20al.,%202010%5D
     }
-  
     lmod$reTrms[["Ztlist"]] <- Ztlist
-    lmod$reTrms[["Zt"]] <- do.call(rBind, Ztlist)
   }
+  lmod$reTrms[["Zt"]] <- do.call(rBind, Ztlist)
   #-------------------------------
-  # end of solaris-specific code
+  # end of relmatLmer-specific code
   #-------------------------------
   
   devfun <- do.call(mkLmerDevfun, c(lmod,

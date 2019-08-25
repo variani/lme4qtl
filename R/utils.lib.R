@@ -62,7 +62,8 @@ relfac <- function(mat, method.relfac = "auto", tol.relfac.svd = 1e-10, tol.relf
   # @ http://en.wikipedia.org/wiki/Cholesky_decomposition
   #
   # If the substitution is Z* = Z L, then Z*' = L' Z' = R Z'      
-  
+  # @ http://www.journalofanimalscience.org/content/88/2/497.long%5BVazquez%20et%20al.,%202010%5D
+
   # inc
   stopifnot(requireNamespace("Matrix", quietly = TRUE))
   
