@@ -112,13 +112,12 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
    for(i in seq_along(fnmns)) {
     fn = fnmns[i]
     if(fn %in% relnms) {
-
       if(debug) {
-        cat(sprintf(" - Zlist element %s \n",fn))
+        cat((" - Zlist element", fn, "\n")
       }
-
+      
+      # check names
       zn <- lmod$fr[, fn]
-
       if(class(zn) != "factor") {
         zn <- as.factor(zn)
       }
@@ -128,41 +127,42 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
       rn <- rownames(relmat[[fn]])
 
       stopifnot(all(zn.unique %in% rn))
+      
+      # compute a relative factor R: K = R'R
+      # See lme4qtl:::relfac
+      K <- Matrix::Matrix(relmat[[fn]][zn.unique, zn.unique], sparse = TRUE)
+      R <- relfac(Ki, method.relfac)
+      relfac[[fn]] <- R
 
-      Ki <- Matrix::Matrix(relmat[[fn]][zn.unique, zn.unique], sparse = TRUE)
-      Ki_sqrt <- relfac(Ki, method.relfac)
-      relfac[[fn]] <- Ki_sqrt
-
-      # ?Matrix::chol
-      # Returned value: a matrix of class Cholesky, i.e., upper triangular: R such that R'R = x.
-      # Note that another notation is equivalent x = L L', where L is a lower triangular 
-      # @ http://en.wikipedia.org/wiki/Cholesky_decomposition
-
-      # If the substitution is Z* = Z L, then Z*' = L' Z' = R Z'
-      # @ http://www.journalofanimalscience.org/content/88/2/497.long%5BVazquez%20et%20al.,%202010%5D
-      #Ztlist[[i]] <-  relfac[[i]] %*% Ztlist[[i]]
-
-      # Following Bates, et al "Fitting Linear Mixed-Effects Models Using lme4", random effect i is specified as ~(r | f),
-      #  r is used to construct the "raw random effects model matrix Xi (n x pi) for term i
-      #  f is used to for the grouping factor model matrix Ji (n x qi) for a factor with qi levels.
-      #     These levels correspond to levels(flist[[fnmn]]) and are used to index the rows/columns of Ki
-      #  These are combined into the matrix Zi  = t(KhatriRao(t(Ji),t(Xi)))
-      # We want to modify Zi to: t(KhatriRao(t(Ji %*% t(K_sqrt)),t(Xi))), where t(Ki_sqrt) %*% Ki_sqrt = Ki, eg. Cholesky
+      # compute a substitution Z*
+      # 1. for random effects ~(1|f): Z* = R Z'
+      # 2. for random effects ~(r | f)
+      #   r is used to construct the "raw random effects model matrix Xi (n x pi) for term i
+      #   f is used to for the grouping factor model matrix Ji (n x qi) for a factor with qi levels.
+      #       These levels correspond to levels(flist[[fnmn]]) and are used to index the rows/columns of Ki
+      # Following Bates, et al "Fitting Linear Mixed-Effects Models Using lme4",
+      # these are combined into the matrix Zi = t(KhatriRao(t(Ji), t(Xi)))
+      # 
+      # We want to modify Zi to: t(KhatriRao(t(Ji %*% t(R)), t(Xi))), 
+      # where t(R) %*% R = K, eg. Cholesky
+      #
       # This is equal to Zi %*% kronecker(t(K_sqrt),diag(1,pi))
+      #
+      # See github.com/variani/lme4qtl/pull/18 contributed by github.com/deruncie
+      
+      pi <- length(lmod$reTrms$cnms[[i]])
+      Zi_t <- lmod$reTrms$Ztlist[[i]] 
+      Zi_t <- kronecker(Ki_sqrt, diag(1, pi)) %*% Zi_t # t(Z*)
 
-      pi = length(lmod$reTrms$cnms[[i]])  # extract pi
-
-      Zi_t = lmod$reTrms$Ztlist[[i]]  # extract original Zi_t
-      Zi_t = kronecker(Ki_sqrt,diag(1,pi)) %*% Zi_t
-
-      # put the modified Zi_t back into the appropriate slot
-      lmod$reTrms$Ztlist[[i]] = Zi_t
+      # put the new t(Z*) back into the appropriate slot `Ztlist`
+      lmod$reTrms$Ztlist[[i]] <- Zi_t
     }
   }
-  # now, combine into the full Zt matrix, as typical in lme4
+  # update the full Zt matrix (the slot `Zt`) by combining all Zt matrices (the slot `Ztlist`)
   lmod$reTrms[["Zt"]] <- do.call(rBind, lmod$reTrms$Ztlist)
+  
   #-------------------------------
-  # end of solaris-specific code
+  # end of relmatLmer-specific code
   #------------------------------- 
     
   mcout$formula <- lmod$formula
@@ -390,9 +390,9 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
   mod@optinfo$relmat <- list(relfac = relfac)
   
   return(mod)
-}## { lmer }
+}
 
-relmatLmer2 <- function(formula, data = NULL, 
+relmatLmer_naive <- function(formula, data = NULL, 
   start = NULL,
   relmat = list()
 )
@@ -405,7 +405,7 @@ relmatLmer2 <- function(formula, data = NULL,
   lmod <- lFormula(formula, data, control = control)
   
   #-------------------------------
-  # start of solaris-specific code
+  # start of relmatLmer-specific code
   #-------------------------------
   stopifnot(is.list(relmat), length(names(relmat)) == length(relmat))
   relnms <- names(relmat)
@@ -428,12 +428,6 @@ relmatLmer2 <- function(formula, data = NULL,
       tn <- which(relmati == names(flist))
       fn <- names(flist)[tn]
       
-      ### option 1
-      #zn <- rownames(Ztlist[[tn]]) 
-      # here was the correction: index value is `tn`, rather than `i`
-      ### option 2
-      # > packageVersion("lme4")
-      # [1] 1.1.8
       zn <- lmod$fr[, fn]
       if(class(rownames(relmat[[i]])) == "character") {
         zn <- as.character(zn)
@@ -443,20 +437,13 @@ relmatLmer2 <- function(formula, data = NULL,
       stopifnot(nrow(relmat[[i]]) == nrow(lmod$fr))
     
       relfac[[i]] <- Matrix::chol(relmat[[i]])
-      # ?Matrix::chol
-      # Returned value: a matrix of class Cholesky, i.e., upper triangular: R such that R'R = x.
-      # Note that another notation is equivalent x = L L', where L is a lower triangular 
-      # @ http://en.wikipedia.org/wiki/Cholesky_decomposition
       Ztlist[[i]] <-  relfac[[i]] %*% Ztlist[[i]]
-      # If the substitution is Z* = Z L, then Z*' = L' Z' = R Z'
-      # @ http://www.journalofanimalscience.org/content/88/2/497.long%5BVazquez%20et%20al.,%202010%5D
     }
-  
     lmod$reTrms[["Ztlist"]] <- Ztlist
-    lmod$reTrms[["Zt"]] <- do.call(rBind, Ztlist)
   }
+  lmod$reTrms[["Zt"]] <- do.call(rBind, Ztlist)
   #-------------------------------
-  # end of solaris-specific code
+  # end of relmatLmer-specific code
   #-------------------------------
   
   devfun <- do.call(mkLmerDevfun, c(lmod,
