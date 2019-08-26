@@ -78,6 +78,20 @@ devtools::install_github("variani/lme4qtl")
 
 The official release on [CRAN](https://CRAN.R-project.org) is [pending](https://github.com/variani/lme4qtl/issues/9).
 
+Citation
+--------
+
+To cite the `lme4qtl` package in publications use:
+
+      Ziyatdinov et al., lme4qtl: linear mixed models with flexible
+      covariance structure for genetic studies of related individuals, 
+      BMC Bioinformatics (2018)
+
+Contact
+-------
+
+You are welcome to submit suggestions and bug-reports at <https://github.com/variani/lme4qtl/issues>.
+
 Example
 -------
 
@@ -135,7 +149,7 @@ m1
 #> convergence code 0; 1 optimizer warnings; 0 lme4 warnings
 ```
 
-Get an estimate of heritability, the proportion of variance explained by `(1|ID)`.
+Get a point estimate of heritability (h2), the proportion of variance explained by `(1|ID)`.
 
 ``` r
 lme4::VarCorr(m1)
@@ -150,7 +164,7 @@ lme4qtl::VarProp(m1)
 #> 3 Residual        <NA> <NA> 0.6172059 0.7856245 0.1045809
 ```
 
-Profile the variance components to get the 95% confidence intervals. The function `profile` is implemented in lme4.
+Profile the variance components (h2) to get the 95% confidence intervals. The function `profile` is implemented in lme4.
 
 ``` r
 m2 <- relmatLmer(trait2 ~ (1|ID), dat40, relmat = list(ID = kin2)) 
@@ -204,17 +218,3 @@ m3
 #> (Intercept)  
 #>      -27.88
 ```
-
-Citation
---------
-
-To cite the `lme4qtl` package in publications use:
-
-      Ziyatdinov et al., lme4qtl: linear mixed models with flexible
-      covariance structure for genetic studies of related individuals, 
-      BMC Bioinformatics (2018)
-
-Contact
--------
-
-You are welcome to submit suggestions and bug-reports at <https://github.com/variani/lme4qtl/issues>.
