@@ -28,11 +28,11 @@ See slides [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ) introducing the `lme4qtl` R p
 </tr>
 <tr class="even">
 <td>lme4</td>
-<td><code>lmer(myTrait ~ myCovariate + (1\|myID), myData)</code></td>
+<td><code>lmer(myTrait ~ myCovariate + (1|myID), myData)</code></td>
 </tr>
 <tr class="odd">
 <td>lme4qtl</td>
-<td><code>relmatLmer(myTrait ~ myCovariate + (1\|myID), myData, relmat = list(myID = myMatrix))</code></td>
+<td><code>relmatLmer(myTrait ~ myCovariate + (1|myID), myData, relmat = list(myID = myMatrix))</code></td>
 </tr>
 </tbody>
 </table>
@@ -55,16 +55,16 @@ See slides [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ) introducing the `lme4qtl` R p
 </tr>
 <tr class="even">
 <td>lme4</td>
-<td><code>glmer(myStatus ~ (1\|myID), myData, family = binomial)</code></td>
+<td><code>glmer(myStatus ~ (1|myID), myData, family = binomial)</code></td>
 </tr>
 <tr class="odd">
 <td>lme4qtl</td>
-<td><code>relmatGlmer(myStatus ~ (1\|myID), myData, relmat = list(myID = myMatrix), family = binomial)</code></td>
+<td><code>relmatGlmer(myStatus ~ (1|myID), myData, relmat = list(myID = myMatrix), family = binomial)</code></td>
 </tr>
 </tbody>
 </table>
 
-Note that rownames/colnames of `myMatrix` have to be values of `myID` variable, so matching between relationship matrix and grouping variable is possible. The order doesn't matter.
+Note that rownames/colnames of `myMatrix` have to be values of `myID` variable, so matching between relationship matrix and grouping variable is possible. The order [doesn't matter](https://github.com/variani/lme4qtl/issues/3#issuecomment-346905978).
 
 Installation
 ------------

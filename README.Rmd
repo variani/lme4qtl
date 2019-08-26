@@ -28,16 +28,16 @@ See slides [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ) introducing the `lme4qtl` R p
 |  Package | Continuous response |
 |----------|---------------------|
 | stats   | `lm(myTrait ~ myCovariate, myData)` |
-| lme4    | `lmer(myTrait ~ myCovariate + (1\|myID), myData)` |
-| lme4qtl | `relmatLmer(myTrait ~ myCovariate + (1\|myID), myData, relmat = list(myID = myMatrix))` |
+| lme4    | `lmer(myTrait ~ myCovariate + (1|myID), myData)` |
+| lme4qtl | `relmatLmer(myTrait ~ myCovariate + (1|myID), myData, relmat = list(myID = myMatrix))` |
 
 |  Package | Binary response |
 |----------|---------------------|
 | stats    | `glm(myStatus ~ 1, myData, family = binomial)` |
-| lme4    | `glmer(myStatus ~ (1\|myID), myData, family = binomial)` |
-| lme4qtl | `relmatGlmer(myStatus ~ (1\|myID), myData, relmat = list(myID = myMatrix), family = binomial)` |
+| lme4    | `glmer(myStatus ~ (1|myID), myData, family = binomial)` |
+| lme4qtl | `relmatGlmer(myStatus ~ (1|myID), myData, relmat = list(myID = myMatrix), family = binomial)` |
 
-Note that rownames/colnames of `myMatrix` have to be values of `myID` variable, so matching between relationship matrix and grouping variable is possible. The order doesn't matter.
+Note that rownames/colnames of `myMatrix` have to be values of `myID` variable, so matching between relationship matrix and grouping variable is possible. The order [doesn't matter](https://github.com/variani/lme4qtl/issues/3#issuecomment-346905978).
 
 ## Installation
 
