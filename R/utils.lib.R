@@ -201,12 +201,15 @@ devCritFun2 <- function(object, REML)
 
 #' Profile variance proportions
 #'
-#' Adapted/copied from \code{varianceProf} function in \code{lme4}.
+#' Adapted/copied from \code{varianceProf} / \code{logProf} function in \code{lme4}.
 #'
 #' @export
-varpropProf <- function(x, ranef = TRUE) 
+varpropProf <- function(x, prof.scale = c("sdcor", "varcov"), 
+  ranef = TRUE, na.action = na.omit) 
 {
   stopifnot(requireNamespace("splines"))
+
+  prof.scale <- match.arg(prof.scale)
 
   stopifnot(inherits(x, "thpr"))
   cn <- colnames(x)
@@ -222,16 +225,31 @@ varpropProf <- function(x, ranef = TRUE)
     names(attr(x, "backward")) <- names(attr(x, "forward")) <- 
       sub(sigP, repP, names(attr(x, "forward")))
     
+    # convert estimates to proportions    
     x2_sum <- 0
     for(nm in cn[sigs]) {
-      x2_sum <- x2_sum + x[[nm]]^2
+      x2_sum <- switch(prof.scale,
+        "sdcor" = x2_sum + x[[nm]]^2,
+        "varcov" = x2_sum + x[[nm]],
+        stop("prof.scale"))
     }
-    
+
     for(nm in cn[sigs]) {
-      x[[nm]] <- x[[nm]]^2 / x2_sum
+      x[[nm]] <- switch(prof.scale,
+        "sdcor" = x[[nm]]^2 / x2_sum,
+        "varcov" = x[[nm]] / x2_sum,
+        stop("prof.scale"))
+    }
+
+    # fit splines
+    for(nm in cn[sigs]) {
       fr <- x[x[[".par"]] == nm, TRUE, drop = FALSE]
       form <- eval(substitute(.zeta ~ nm, list(nm = as.name(nm))))
-      attr(x, "forward")[[nm]] <- isp <- splines::interpSpline(form, fr)
+      
+      print(form)
+      print(head(fr))
+      
+      attr(x, "forward")[[nm]] <- isp <- splines::interpSpline(form, fr, na.action = na.action)
       attr(x, "backward")[[nm]] <- splines::backSpline(isp)
     }
   }
