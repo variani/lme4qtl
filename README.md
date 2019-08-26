@@ -82,12 +82,32 @@ Example
 -------
 
 ``` r
+library(lme4)
+library(lattice)
+
 library(lme4qtl)
+```
 
-# load simulated data: phenotypes in `dat40` and kinship in `kin2`
+Load simulated data, phenotypes `dat40` and the kinship matrix `kin2`.
+
+``` r
 data(dat40, package = "lme4qtl")
+head(dat40)
+#>     ID  trait1  trait2 AGE FAMID  FA  MO SEX trait1bin trait2bin
+#> 7  101 8.41954 9.67925  50    10   0   0   1         0         0
+#> 14 102 5.47141 4.31886  44    10   0   0   2         0         0
+#> 21 103 9.66547 7.00735  34    10 101 102   2         0         0
+#> 28 104 6.27092 8.59257  41    10 101 102   1         0         0
+#> 35 105 7.96814 7.60801  36    10 101 102   1         0         0
+#> 42 106 8.29865 8.17634  37    10 101 102   2         0         0
+image(kin2[1:15, 1:15])
+```
 
-# fit a model for continuous trait 
+<img src="man/figures/README-ex_data-1.png" width="100%" />
+
+Fit a model for continuous trait with two random effects, family-grouping `(1|FAM)` and additive genetic `(1|ID)`.
+
+``` r
 m1 <- relmatLmer(trait1 ~ AGE + SEX + (1|FAMID) + (1|ID), dat40, relmat = list(ID = kin2))
 #> boundary (singular) fit: see ?isSingular
 #> boundary (singular) fit: see ?isSingular
@@ -106,8 +126,11 @@ m1
 #> (Intercept)          AGE         SEX2  
 #>    7.563248     0.008314    -0.364197  
 #> convergence code 0; 1 optimizer warnings; 0 lme4 warnings
+```
 
-# get an estimate of h2, the proportion of variance explained by (1|ID)
+Get an estimate of heritability, the proportion of variance explained by `(1|ID)`.
+
+``` r
 lme4::VarCorr(m1)
 #>  Groups   Name        Std.Dev.
 #>  ID       (Intercept) 2.29880 
@@ -118,10 +141,46 @@ lme4qtl::VarProp(m1)
 #> 1       ID (Intercept) <NA> 5.2845002 2.2988041 0.8954191
 #> 2    FAMID (Intercept) <NA> 0.0000000 0.0000000 0.0000000
 #> 3 Residual        <NA> <NA> 0.6172059 0.7856245 0.1045809
+```
 
-# fir a model model for binary trait
-m2 <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family = binomial)
-m2
+Profile the variance components to get the 95% confidence intervals. The function `profile` is implemented in lme4.
+
+``` r
+m2 <- relmatLmer(trait2 ~ (1|ID), dat40, relmat = list(ID = kin2)) 
+
+prof <- profile(m2)
+#> Warning in zetafun(np, ns): NAs detected in profiling
+prof_prop <- varpropProf(prof)
+#> .zeta ~ .sigprop01
+#> <environment: 0x10741da8>
+#>       .zeta .sigprop01 .sigmaprop (Intercept)       .par
+#> 1 -3.779799  0.2878747  0.7121253    7.811672 .sigprop01
+#> 2 -3.362625  0.3416861  0.6583139    7.813704 .sigprop01
+#> 3 -2.942494  0.3973068  0.6026932    7.816033 .sigprop01
+#> 4 -2.520827  0.4539369  0.5460631    7.818708 .sigprop01
+#> 5 -2.098776  0.5106799  0.4893201    7.821782 .sigprop01
+#> 6 -1.677203  0.5665792  0.4334208    7.825307 .sigprop01
+#> .zeta ~ .sigmaprop
+#> <environment: 0x10741da8>
+#>        .zeta .sigprop01  .sigmaprop (Intercept)       .par
+#> 21 -3.016673  0.9942080 0.005792021    7.914761 .sigmaprop
+#> 22 -2.730254  0.9799389 0.020061055    7.906040 .sigmaprop
+#> 23 -2.387007  0.9610027 0.038997322    7.896118 .sigmaprop
+#> 24 -2.015364  0.9380705 0.061929475    7.886071 .sigmaprop
+#> 25 -1.627079  0.9112194 0.088780552    7.876378 .sigmaprop
+#> 26 -1.228482  0.8804049 0.119595070    7.867297 .sigmaprop
+confint(prof_prop)
+#>                 2.5 %    97.5 %
+#> .sigprop01  0.5292158 0.9157910
+#> .sigmaprop  0.0655726 0.4652175
+#> (Intercept) 7.2745157 8.4237085
+```
+
+Fit a model for binary trait.
+
+``` r
+m3 <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family = binomial)
+m3
 #> Generalized linear mixed model fit by maximum likelihood (Laplace
 #>   Approximation) [glmerMod]
 #>  Family: binomial  ( logit )

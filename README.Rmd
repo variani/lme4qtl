@@ -9,6 +9,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
+  cache.path = "man/cache/README-",
   out.width = "100%"
 )
 ```
@@ -50,23 +51,52 @@ The official release on [CRAN](https://CRAN.R-project.org) is [pending](https://
 
 ## Example
 
-```{r ex}
+```{r ex_inc}
+library(lme4)
+library(lattice)
+
 library(lme4qtl)
+```
 
-# load simulated data: phenotypes in `dat40` and kinship in `kin2`
+Load simulated data, phenotypes `dat40` and the kinship matrix `kin2`.
+
+```{r ex_data}
 data(dat40, package = "lme4qtl")
+head(dat40)
+image(kin2[1:15, 1:15])
+```
 
-# fit a model for continuous trait 
+Fit a model for continuous trait with two random effects, 
+family-grouping `(1|FAM)` and additive genetic `(1|ID)`.
+
+```{r ex_fit1}
 m1 <- relmatLmer(trait1 ~ AGE + SEX + (1|FAMID) + (1|ID), dat40, relmat = list(ID = kin2))
 m1
+```
 
-# get an estimate of h2, the proportion of variance explained by (1|ID)
+Get an estimate of heritability, the proportion of variance explained by `(1|ID)`.
+
+```{r ex_h2}
 lme4::VarCorr(m1)
 lme4qtl::VarProp(m1)
+```
 
-# fir a model model for binary trait
-m2 <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family = binomial)
-m2
+Profile the variance components to get the 95% confidence intervals.
+The function `profile` is implemented in lme4.
+
+```{r ex_prof, cache = T}
+m2 <- relmatLmer(trait2 ~ (1|ID), dat40, relmat = list(ID = kin2)) 
+
+prof <- profile(m2)
+prof_prop <- varpropProf(prof)
+confint(prof_prop)
+```
+
+Fit a model for binary trait.
+
+```{r ex_fit3}
+m3 <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family = binomial)
+m3
 ```
 
 ## Citation
