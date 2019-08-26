@@ -84,8 +84,15 @@ Example
 ``` r
 library(lme4)
 library(lattice)
+```
 
+``` r
 library(lme4qtl)
+```
+
+``` r
+packageVersion("lme4qtl")
+#> [1] '0.2.1'
 ```
 
 Load simulated data, phenotypes `dat40` and the kinship matrix `kin2`.
@@ -100,10 +107,10 @@ head(dat40)
 #> 28 104 6.27092 8.59257  41    10 101 102   1         0         0
 #> 35 105 7.96814 7.60801  36    10 101 102   1         0         0
 #> 42 106 8.29865 8.17634  37    10 101 102   2         0         0
-image(kin2[1:15, 1:15])
+Matrix::image(kin2[1:15, 1:15], main = "Kinship matrix \n first 15 individuals")
 ```
 
-<img src="man/figures/README-ex_data-1.png" width="100%" />
+<img src="man/figures/README-ex_data-1.png" width="50%" />
 
 Fit a model for continuous trait with two random effects, family-grouping `(1|FAM)` and additive genetic `(1|ID)`.
 
@@ -150,30 +157,31 @@ m2 <- relmatLmer(trait2 ~ (1|ID), dat40, relmat = list(ID = kin2))
 
 prof <- profile(m2)
 #> Warning in zetafun(np, ns): NAs detected in profiling
-prof_prop <- varpropProf(prof)
-#> .zeta ~ .sigprop01
-#> <environment: 0x10741da8>
-#>       .zeta .sigprop01 .sigmaprop (Intercept)       .par
-#> 1 -3.779799  0.2878747  0.7121253    7.811672 .sigprop01
-#> 2 -3.362625  0.3416861  0.6583139    7.813704 .sigprop01
-#> 3 -2.942494  0.3973068  0.6026932    7.816033 .sigprop01
-#> 4 -2.520827  0.4539369  0.5460631    7.818708 .sigprop01
-#> 5 -2.098776  0.5106799  0.4893201    7.821782 .sigprop01
-#> 6 -1.677203  0.5665792  0.4334208    7.825307 .sigprop01
-#> .zeta ~ .sigmaprop
-#> <environment: 0x10741da8>
-#>        .zeta .sigprop01  .sigmaprop (Intercept)       .par
-#> 21 -3.016673  0.9942080 0.005792021    7.914761 .sigmaprop
-#> 22 -2.730254  0.9799389 0.020061055    7.906040 .sigmaprop
-#> 23 -2.387007  0.9610027 0.038997322    7.896118 .sigmaprop
-#> 24 -2.015364  0.9380705 0.061929475    7.886071 .sigmaprop
-#> 25 -1.627079  0.9112194 0.088780552    7.876378 .sigmaprop
-#> 26 -1.228482  0.8804049 0.119595070    7.867297 .sigmaprop
+prof_prop <- lme4qtl::varpropProf(prof) # convert variance components to proportions
 confint(prof_prop)
 #>                 2.5 %    97.5 %
 #> .sigprop01  0.5292158 0.9157910
 #> .sigmaprop  0.0655726 0.4652175
 #> (Intercept) 7.2745157 8.4237085
+```
+
+``` r
+densityplot(prof)
+```
+
+<img src="man/figures/README-plot_prof-1.png" width="50%" />
+
+``` r
+densityplot(prof_prop)
+```
+
+<img src="man/figures/README-plot_prof-2.png" width="50%" />
+
+``` r
+
+try(splom(prof)) 
+#> Error in if (singfit) warning("splom is unreliable for singular fits") : 
+#>   missing value where TRUE/FALSE needed
 ```
 
 Fit a model for binary trait.

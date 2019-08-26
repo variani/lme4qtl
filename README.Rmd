@@ -9,8 +9,9 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
+  fig.width = 8, fig.height = 8,
   cache.path = "man/cache/README-",
-  out.width = "100%"
+  out.width = "50%"
 )
 ```
 # lme4qtl
@@ -54,8 +55,18 @@ The official release on [CRAN](https://CRAN.R-project.org) is [pending](https://
 ```{r ex_inc}
 library(lme4)
 library(lattice)
+```
 
+```{r ex_inc2, eval = FALSE}
 library(lme4qtl)
+```
+
+```{r ex_inc3, echo = FALSE, message = F}
+load_all()
+```
+
+```{r pkg_ver}
+packageVersion("lme4qtl")
 ```
 
 Load simulated data, phenotypes `dat40` and the kinship matrix `kin2`.
@@ -63,7 +74,7 @@ Load simulated data, phenotypes `dat40` and the kinship matrix `kin2`.
 ```{r ex_data}
 data(dat40, package = "lme4qtl")
 head(dat40)
-image(kin2[1:15, 1:15])
+Matrix::image(kin2[1:15, 1:15], main = "Kinship matrix \n first 15 individuals")
 ```
 
 Fit a model for continuous trait with two random effects, 
@@ -88,8 +99,15 @@ The function `profile` is implemented in lme4.
 m2 <- relmatLmer(trait2 ~ (1|ID), dat40, relmat = list(ID = kin2)) 
 
 prof <- profile(m2)
-prof_prop <- varpropProf(prof)
+prof_prop <- lme4qtl::varpropProf(prof) # convert variance components to proportions
 confint(prof_prop)
+```
+
+```{r plot_prof, fig.width = 8, fig.height = 4}
+densityplot(prof)
+densityplot(prof_prop)
+
+try(splom(prof)) 
 ```
 
 Fit a model for binary trait.

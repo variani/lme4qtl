@@ -246,9 +246,6 @@ varpropProf <- function(x, prof.scale = c("sdcor", "varcov"),
       fr <- x[x[[".par"]] == nm, TRUE, drop = FALSE]
       form <- eval(substitute(.zeta ~ nm, list(nm = as.name(nm))))
       
-      print(form)
-      print(head(fr))
-      
       attr(x, "forward")[[nm]] <- isp <- splines::interpSpline(form, fr, na.action = na.action)
       attr(x, "backward")[[nm]] <- splines::backSpline(isp)
     }
