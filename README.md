@@ -113,6 +113,12 @@ Load simulated data, phenotypes `dat40` and the kinship matrix `kin2`.
 
 ``` r
 data(dat40, package = "lme4qtl")
+
+dim(dat40)
+#> [1] 234  10
+dim(kin2)
+#> [1] 234 234
+
 head(dat40)
 #>     ID  trait1  trait2 AGE FAMID  FA  MO SEX trait1bin trait2bin
 #> 7  101 8.41954 9.67925  50    10   0   0   1         0         0
@@ -121,10 +127,15 @@ head(dat40)
 #> 28 104 6.27092 8.59257  41    10 101 102   1         0         0
 #> 35 105 7.96814 7.60801  36    10 101 102   1         0         0
 #> 42 106 8.29865 8.17634  37    10 101 102   2         0         0
-Matrix::image(kin2[1:15, 1:15], main = "Kinship matrix \n first 15 individuals")
+kin2[1:5, 1:5]
+#> 5 x 5 sparse Matrix of class "dsCMatrix"
+#>     11  12  13  14  15
+#> 11 1.0 .   0.5 0.5 0.5
+#> 12 .   1.0 0.5 0.5 0.5
+#> 13 0.5 0.5 1.0 0.5 0.5
+#> 14 0.5 0.5 0.5 1.0 0.5
+#> 15 0.5 0.5 0.5 0.5 1.0
 ```
-
-<img src="man/figures/README-ex_data-1.png" width="50%" />
 
 Fit a model for continuous trait with two random effects, family-grouping `(1|FAM)` and additive genetic `(1|ID)`.
 
@@ -217,4 +228,44 @@ m3
 #> Fixed Effects:
 #> (Intercept)  
 #>      -27.88
+```
+
+Fit a model with genetic and residual variances that differ by gender (sex-specificity model). The formula syntax with `dummy` (see `?lme4::dummy`) is applied to the residual variance `(1|RID)` to cancel the residual correlation.
+
+``` r
+dat40 <- within(dat40, RID <- ID) # replicate ID 
+
+m4 <- relmatLmer(trait2 ~ SEX + (0 + SEX|ID) + (0 + dummy(SEX)|RID), dat40, relmat = list(ID = kin2)) 
+VarCorr(m4)
+#>  Groups   Name       Std.Dev.   Corr 
+#>  ID       SEX1       1.94400138      
+#>           SEX2       2.64404940 0.826
+#>  RID      dummy(SEX) 0.00050224      
+#>  Residual            1.22780606
+```
+
+An example of parameter constraints that make the genetic variance between genders equal.
+
+``` r
+m4_vareq <- relmatLmer(trait2 ~ SEX + (0 + SEX|ID) + (0 + dummy(SEX)|RID), dat40, relmat = list(ID = kin2),
+  vcControl = list(vareq = list(id = c(1, 2, 3)))) 
+VarCorr(m4_vareq)
+#>  Groups   Name       Std.Dev. Corr 
+#>  ID       SEX1       2.47777       
+#>           SEX2       2.47777  0.746
+#>  RID      dummy(SEX) 0.95827       
+#>  Residual            0.72728
+```
+
+Another example of parameter constraints that induces the genetic correlation between genders equal to 1.
+
+``` r
+m4_rhog1 <- relmatLmer(trait2 ~ SEX + (0 + SEX|ID) + (0 + dummy(SEX)|RID), dat40, relmat = list(ID = kin2),
+  vcControl = list(rho1 = list(id = 3))) 
+VarCorr(m4_rhog1)
+#>  Groups   Name       Std.Dev.  Corr 
+#>  ID       SEX1       1.7627785      
+#>           SEX2       2.5782330 1.000
+#>  RID      dummy(SEX) 0.0014823      
+#>  Residual            1.4147793
 ```

@@ -88,8 +88,12 @@ Load simulated data, phenotypes `dat40` and the kinship matrix `kin2`.
 
 ```{r ex_data}
 data(dat40, package = "lme4qtl")
+
+dim(dat40)
+dim(kin2)
+
 head(dat40)
-Matrix::image(kin2[1:15, 1:15], main = "Kinship matrix \n first 15 individuals")
+kin2[1:5, 1:5]
 ```
 
 Fit a model for continuous trait with two random effects, 
@@ -127,9 +131,34 @@ try(splom(prof))
 
 Fit a model for binary trait.
 
-```{r ex_fit3}
+```{r ex_fit3, cache = T}
 m3 <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family = binomial)
 m3
 ```
 
+Fit a model with genetic and residual variances that differ by gender (sex-specificity model).
+The formula syntax with `dummy` (see `?lme4::dummy`) is applied to the residual variance `(1|RID)`
+to cancel the residual correlation. 
 
+```{r gxe, cache = T}
+dat40 <- within(dat40, RID <- ID) # replicate ID 
+
+m4 <- relmatLmer(trait2 ~ SEX + (0 + SEX|ID) + (0 + dummy(SEX)|RID), dat40, relmat = list(ID = kin2)) 
+VarCorr(m4)
+```
+
+An example of parameter constraints that make the genetic variance between genders equal.
+
+```{r gex_eq, cache = T}
+m4_vareq <- relmatLmer(trait2 ~ SEX + (0 + SEX|ID) + (0 + dummy(SEX)|RID), dat40, relmat = list(ID = kin2),
+  vcControl = list(vareq = list(id = c(1, 2, 3)))) 
+VarCorr(m4_vareq)
+```
+
+Another example of parameter constraints that induces the genetic correlation between genders equal to 1.
+
+```{r gxe_rho1, cache = T}
+m4_rhog1 <- relmatLmer(trait2 ~ SEX + (0 + SEX|ID) + (0 + dummy(SEX)|RID), dat40, relmat = list(ID = kin2),
+  vcControl = list(rho1 = list(id = 3))) 
+VarCorr(m4_rhog1)
+```
