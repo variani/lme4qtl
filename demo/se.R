@@ -5,6 +5,11 @@
 # Use case of msm::deltamethod: https://github.com/sashagusev/SKK-REML-sim/blob/master/func_reml.R#L197
 # [R-sig-ME] Error in Profile likelihood based confidence intervals in glmer(): https://stat.ethz.ch/pipermail/r-sig-mixed-models/2014q3/022394.html
 
+# inc
+library(MASS)
+library(numDeriv)
+library(msm)  
+
 # data
 data(dat40, package = "lme4qtl")
 
@@ -27,12 +32,10 @@ vc <- head(vc, -1) # the last one is `sigma(m)`
 # hessian
 f <- update(m, devFunOnly = TRUE)
 
-library(numDeriv)
-th <- getME(m, "theta")
-h <- hessian(f, th)
+th <- lme4::getME(m, "theta")
+h <- numDeriv::hessian(f, th)
 
-library(MASS)
-cov <- ginv(h)
+cov <- MASS::ginv(h)
 
 # delta method
 nth <- length(th)
@@ -45,7 +48,7 @@ forms <- lapply(seq(nth), function(i)
  paste("~", terms[i], "/ (", total, ")"))
   
 ses <- sapply(forms, function(f)
-  deltamethod(as.formula(f), th, cov, ses = TRUE))
+  msm::deltamethod(as.formula(f), th, cov, ses = TRUE))
 
 # show results
 tab <- data.frame(grp = head(vf$grp, -1), est = vc, se = ses)
