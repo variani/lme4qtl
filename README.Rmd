@@ -118,6 +118,7 @@ because profiling is prone to errors/warnings if model fit is poor.
 
 ```{r ex_prof, cache = T}
 m2 <- relmatLmer(trait2 ~ (1|ID), dat40, relmat = list(ID = kin2)) 
+VarProp(m2)
 
 prof <- profile(m2)
 prof_prop <- lme4qtl::varpropProf(prof) # convert to proportions

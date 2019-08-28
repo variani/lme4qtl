@@ -179,6 +179,10 @@ Profile the variance components (h2) to get the 95% confidence intervals. The me
 
 ``` r
 m2 <- relmatLmer(trait2 ~ (1|ID), dat40, relmat = list(ID = kin2)) 
+VarProp(m2)
+#>        grp        var1 var2     vcov    sdcor      prop
+#> 1       ID (Intercept) <NA> 5.573272 2.360778 0.7723589
+#> 2 Residual        <NA> <NA> 1.642638 1.281654 0.2276411
 
 prof <- profile(m2)
 #> Warning in zetafun(np, ns): NAs detected in profiling
