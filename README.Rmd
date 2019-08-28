@@ -93,7 +93,7 @@ dim(dat40)
 dim(kin2)
 
 head(dat40)
-kin2[1:5, 1:5]
+kin2[1:5, 1:5] # nuclear family with 2 parents and 3 kids
 ```
 
 Fit a model for continuous trait with two random effects, 
@@ -112,28 +112,28 @@ lme4qtl::VarProp(m1)
 ```
 
 Profile the variance components (h2) to get the 95% confidence intervals.
-The function `profile` is implemented in lme4.
+The method functions `profile` and `confint` are implemented in lme4.
+Note that a different model `m2` is used,
+because profiling is prone to errors/warnings if model fit is poor.
 
 ```{r ex_prof, cache = T}
 m2 <- relmatLmer(trait2 ~ (1|ID), dat40, relmat = list(ID = kin2)) 
 
 prof <- profile(m2)
-prof_prop <- lme4qtl::varpropProf(prof) # convert variance components to proportions
+prof_prop <- lme4qtl::varpropProf(prof) # convert to proportions
 confint(prof_prop)
 ```
 
 ```{r plot_prof, fig.width = 8, fig.height = 4}
 densityplot(prof)
 densityplot(prof_prop)
-
-try(splom(prof)) 
 ```
 
-Fit a model for binary trait.
+```{r plot_prof_splom}
+try(splom(prof)) 
 
-```{r ex_fit3, cache = T}
-m3 <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family = binomial)
-m3
+prof_clean <- na.omit(prof) # caution: NAs are indicators of poor fits
+splom(prof_clean)
 ```
 
 Fit a model with genetic and residual variances that differ by gender (sex-specificity model).
@@ -155,10 +155,17 @@ m4_vareq <- relmatLmer(trait2 ~ SEX + (0 + SEX|ID) + (0 + dummy(SEX)|RID), dat40
 VarCorr(m4_vareq)
 ```
 
-Another example of parameter constraints that induces the genetic correlation between genders equal to 1.
+Another example of parameter constraint that implies the genetic correlation between genders equal to 1.
 
 ```{r gxe_rho1, cache = T}
 m4_rhog1 <- relmatLmer(trait2 ~ SEX + (0 + SEX|ID) + (0 + dummy(SEX)|RID), dat40, relmat = list(ID = kin2),
   vcControl = list(rho1 = list(id = 3))) 
 VarCorr(m4_rhog1)
+```
+
+Fit a model for binary trait.
+
+```{r ex_fit3, cache = T}
+m3 <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family = binomial(probit))
+m3
 ```

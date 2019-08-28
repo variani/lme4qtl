@@ -127,7 +127,7 @@ head(dat40)
 #> 28 104 6.27092 8.59257  41    10 101 102   1         0         0
 #> 35 105 7.96814 7.60801  36    10 101 102   1         0         0
 #> 42 106 8.29865 8.17634  37    10 101 102   2         0         0
-kin2[1:5, 1:5]
+kin2[1:5, 1:5] # nuclear family with 2 parents and 3 kids
 #> 5 x 5 sparse Matrix of class "dsCMatrix"
 #>     11  12  13  14  15
 #> 11 1.0 .   0.5 0.5 0.5
@@ -175,14 +175,14 @@ lme4qtl::VarProp(m1)
 #> 3 Residual        <NA> <NA> 0.6172059 0.7856245 0.1045809
 ```
 
-Profile the variance components (h2) to get the 95% confidence intervals. The function `profile` is implemented in lme4.
+Profile the variance components (h2) to get the 95% confidence intervals. The method functions `profile` and `confint` are implemented in lme4. Note that a different model `m2` is used, because profiling is prone to errors/warnings if model fit is poor.
 
 ``` r
 m2 <- relmatLmer(trait2 ~ (1|ID), dat40, relmat = list(ID = kin2)) 
 
 prof <- profile(m2)
 #> Warning in zetafun(np, ns): NAs detected in profiling
-prof_prop <- lme4qtl::varpropProf(prof) # convert variance components to proportions
+prof_prop <- lme4qtl::varpropProf(prof) # convert to proportions
 confint(prof_prop)
 #>                 2.5 %    97.5 %
 #> .sigprop01  0.5292158 0.9157910
@@ -203,32 +203,15 @@ densityplot(prof_prop)
 <img src="man/figures/README-plot_prof-2.png" width="50%" />
 
 ``` r
-
 try(splom(prof)) 
 #> Error in if (singfit) warning("splom is unreliable for singular fits") : 
 #>   missing value where TRUE/FALSE needed
+
+prof_clean <- na.omit(prof) # caution: NAs are indicators of poor fits
+splom(prof_clean)
 ```
 
-Fit a model for binary trait.
-
-``` r
-m3 <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family = binomial)
-m3
-#> Generalized linear mixed model fit by maximum likelihood (Laplace
-#>   Approximation) [glmerMod]
-#>  Family: binomial  ( logit )
-#> Formula: trait1bin ~ (1 | ID)
-#>    Data: dat40
-#>      AIC      BIC   logLik deviance df.resid 
-#> 175.5894 182.5000 -85.7947 171.5894      232 
-#> Random effects:
-#>  Groups Name        Std.Dev.
-#>  ID     (Intercept) 51.09   
-#> Number of obs: 234, groups:  ID, 234
-#> Fixed Effects:
-#> (Intercept)  
-#>      -27.88
-```
+<img src="man/figures/README-plot_prof_splom-1.png" width="50%" />
 
 Fit a model with genetic and residual variances that differ by gender (sex-specificity model). The formula syntax with `dummy` (see `?lme4::dummy`) is applied to the residual variance `(1|RID)` to cancel the residual correlation.
 
@@ -257,7 +240,7 @@ VarCorr(m4_vareq)
 #>  Residual            0.72728
 ```
 
-Another example of parameter constraints that induces the genetic correlation between genders equal to 1.
+Another example of parameter constraint that implies the genetic correlation between genders equal to 1.
 
 ``` r
 m4_rhog1 <- relmatLmer(trait2 ~ SEX + (0 + SEX|ID) + (0 + dummy(SEX)|RID), dat40, relmat = list(ID = kin2),
@@ -268,4 +251,25 @@ VarCorr(m4_rhog1)
 #>           SEX2       2.5782330 1.000
 #>  RID      dummy(SEX) 0.0014823      
 #>  Residual            1.4147793
+```
+
+Fit a model for binary trait.
+
+``` r
+m3 <- relmatGlmer(trait1bin ~ (1|ID), dat40, relmat = list(ID = kin2), family = binomial(probit))
+m3
+#> Generalized linear mixed model fit by maximum likelihood (Laplace
+#>   Approximation) [glmerMod]
+#>  Family: binomial  ( probit )
+#> Formula: trait1bin ~ (1 | ID)
+#>    Data: dat40
+#>       AIC       BIC    logLik  deviance  df.resid 
+#>  218.1325  225.0432 -107.0663  214.1325       232 
+#> Random effects:
+#>  Groups Name        Std.Dev.
+#>  ID     (Intercept) 0.7669  
+#> Number of obs: 234, groups:  ID, 234
+#> Fixed Effects:
+#> (Intercept)  
+#>      -1.242
 ```
