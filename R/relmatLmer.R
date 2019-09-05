@@ -109,6 +109,10 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
   # - need special processing
   relnms <- names(relmat)
 
+  if(!all(relnms %in% fnmns)) {
+    warning("not all relmat ID variables match RE ID terms")
+  }
+
   for(i in seq_along(fnmns)) {
     fn <- fnmns[i]
     

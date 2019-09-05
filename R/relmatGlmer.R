@@ -127,6 +127,10 @@ relmat_glmer <- function(formula, data = NULL, family = gaussian,
   # - need special processing
   relnms <- names(relmat)
 
+  if(!all(relnms %in% fnmns)) {
+    warning("not all relmat ID variables match RE ID terms")
+  }
+  
   for(i in seq_along(fnmns)) {
     fn <- fnmns[i]
     
