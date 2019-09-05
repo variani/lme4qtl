@@ -1,3 +1,10 @@
+lme4qtl 0.2.2
+=============
+
+- Throws a warning when misspecified IDs in `relamt` argument. 
+  Related to issue #20 and SO question 
+  https://stats.stackexchange.com/questions/417160/linear-mixed-effects-model-i-cant-seem-to-avoid-either-convergence-errors-or
+    
 lme4qtl 0.2.1
 =============
 
