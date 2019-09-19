@@ -65,6 +65,10 @@ To cite the `lme4qtl` package in publications use:
 
 You are welcome to submit suggestions and bug-reports at https://github.com/variani/lme4qtl/issues.
 
+## Related projects
+
+- fastGWA (GCTA) tool for large-scale association studies (e.g. UKB) and based on sparse GRM; [bioarxiv](https://www.biorxiv.org/content/10.1101/598110v1) 
+
 ## Example
 
 ```{r ex_inc}
