@@ -67,7 +67,8 @@ You are welcome to submit suggestions and bug-reports at https://github.com/vari
 
 ## Related projects
 
-- fastGWA (GCTA) tool for large-scale association studies (e.g. UKB) and based on sparse GRM; [bioarxiv](https://www.biorxiv.org/content/10.1101/598110v1) 
+- fastGWA/GCTA tool for large-scale association studies (e.g. UKB) and based on sparse GRM; [bioarxiv](https://www.biorxiv.org/content/10.1101/598110v1) 
+- [GENESIS](https://bioconductor.org/packages/release/bioc/html/GENESIS.html) Bioconductor R package
 
 ## Example
 
