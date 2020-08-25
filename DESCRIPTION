@@ -19,7 +19,6 @@ Suggests:
     splines,
     testthat,
     doParallel,
-    solarius,
     HSAUR2,
     pedigreemm
 Collate:
