@@ -54,25 +54,27 @@ test_that("equivalence on (1|plate) and K", {
 test_that("relfac methods for h2 estimation", {
   stopifnot(require(kinship2))
   
-  data(dat30, package = "solarius")
+  if(require("solarius")) {
+    data(dat30, package = "solarius")
 
-  dat30 <- mutate(dat30,
-    id = factor(id))
-  
-  kin2 <- 2 * with(dat30, kinship(id, fa, mo, sex))
-  relmat <- list(id = kin2)
-  
-  mod1 <- relmatLmer(trait1 ~ 1 + (1|id), dat30, relmat = relmat, method.relfac = "chol")
-  mod2 <- relmatLmer(trait1 ~ 1 + (1|id), dat30, relmat = relmat, method.relfac = "svd")
+    dat30 <- mutate(dat30,
+      id = factor(id))
+    
+    kin2 <- 2 * with(dat30, kinship(id, fa, mo, sex))
+    relmat <- list(id = kin2)
+    
+    mod1 <- relmatLmer(trait1 ~ 1 + (1|id), dat30, relmat = relmat, method.relfac = "chol")
+    mod2 <- relmatLmer(trait1 ~ 1 + (1|id), dat30, relmat = relmat, method.relfac = "svd")
 
-  vcf <- as.data.frame(VarCorr(mod1))[, c("grp", "vcov")]
-  vc <- vcf$vcov / sum(vcf$vcov)
-  h2.mod1 <- vc[1]
+    vcf <- as.data.frame(VarCorr(mod1))[, c("grp", "vcov")]
+    vc <- vcf$vcov / sum(vcf$vcov)
+    h2.mod1 <- vc[1]
 
-  vcf <- as.data.frame(VarCorr(mod2))[, c("grp", "vcov")]
-  vc <- vcf$vcov / sum(vcf$vcov)
-  h2.mod2 <- vc[1]
+    vcf <- as.data.frame(VarCorr(mod2))[, c("grp", "vcov")]
+    vc <- vcf$vcov / sum(vcf$vcov)
+    h2.mod2 <- vc[1]
 
-  expect_true(h2.mod1 > 0.8)
-  expect_true(abs(h2.mod1 - h2.mod2) < 1e-5)
+    expect_true(h2.mod1 > 0.8)
+    expect_true(abs(h2.mod1 - h2.mod2) < 1e-5)
+  }
 })
