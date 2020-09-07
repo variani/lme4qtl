@@ -22,7 +22,7 @@ test_that("cont. slope; one ranef", {
   u2_hat <- round(relmatRanef(m2, "ID"), 5)
   u2_hat_fam <- unique(u2_hat)
 
-  expect_equal(u1_hat, u2_hat_fam)  
+  expect_equal(u1_hat, u2_hat_fam, tolerance = 1e-4)
 })
 
 test_that("cont. slope; 2 ranef + 2 formula terms", {
