@@ -48,7 +48,7 @@ test_that("cont. slope; 2 ranef + 2 formula terms", {
   u2_hat <- relmatRanef(m2, "ID2") %>% round(5)
   u2_hat_fam <- unique(u2_hat)
 
-  expect_equal(u1_hat, u2_hat_fam)  
+  expect_equal(u1_hat, u2_hat_fam, tolerance = 1e-4)
 })
 
 test_that("cont. slope; 2 ranef + 1 formula term", {
@@ -82,7 +82,7 @@ test_that("cont. slope; 2 ranef + 1 formula term", {
   u4_hat <- relmatRanef(m4, "ID2") %>% round(5)
   u4_hat_fam <- unique(u4_hat)
   
-  expect_equal(u3_hat, u4_hat_fam)  
+  expect_equal(u3_hat, u4_hat_fam, tolerance = 1e-4)  
 })
 
 test_that("GxE in dat30", {
