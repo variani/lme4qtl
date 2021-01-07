@@ -164,7 +164,7 @@ relmat_lmer <- function(formula, data = NULL, REML = TRUE,
     }
   }
   # update the full Zt matrix (the slot `Zt`) by combining all Zt matrices (the slot `Ztlist`)
-  lmod$reTrms[["Zt"]] <- do.call(rBind, lmod$reTrms$Ztlist)
+  lmod$reTrms[["Zt"]] <- do.call(rbind, lmod$reTrms$Ztlist)
   #-------------------------------
   # end of relmatLmer-specific code
   #------------------------------- 
@@ -445,7 +445,7 @@ relmatLmer_naive <- function(formula, data = NULL,
     }
     lmod$reTrms[["Ztlist"]] <- Ztlist
   }
-  lmod$reTrms[["Zt"]] <- do.call(rBind, Ztlist)
+  lmod$reTrms[["Zt"]] <- do.call(rbind, Ztlist)
   #-------------------------------
   # end of relmatLmer-specific code
   #-------------------------------

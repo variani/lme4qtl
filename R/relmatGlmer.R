@@ -168,7 +168,7 @@ relmat_glmer <- function(formula, data = NULL, family = gaussian,
     }
   }
   # update the full Zt matrix (the slot `Zt`) by combining all Zt matrices (the slot `Ztlist`)
-  glmod$reTrms[["Zt"]] <- do.call(rBind, glmod$reTrms$Ztlist)
+  glmod$reTrms[["Zt"]] <- do.call(rbind, glmod$reTrms$Ztlist)
   #-------------------------------
   # end of relmatGlmer-specific code
   #------------------------------- 
